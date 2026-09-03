@@ -409,12 +409,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [modelInfo, setModelInfo] = useState(null);
-  const [minSplashDone, setMinSplashDone] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setMinSplashDone(true), 2200);
-    return () => clearTimeout(t);
-  }, []);
 
   const list = view === "projects" ? PROJECTS : view === "experience" ? EXPERIENCE : [];
   const selected = list.find((s) => s.id === selectedId) || null;
@@ -488,9 +482,30 @@ export default function App() {
 
     // Subtle blue light behind the car — a real light instead of a gradient texture,
     // so there's no gradient to dither/band regardless of how large it renders.
-    const backLight = new THREE.PointLight(0x4fa8ff, 8, 20, 2);
-    backLight.position.set(0, 2.5, -7);
-    scene.add(backLight);
+    function makeGlowBackdropTexture() {
+      const s = 512;
+      const c = document.createElement("canvas");
+      c.width = c.height = s;
+      const ctx = c.getContext("2d");
+      const grad = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+      grad.addColorStop(0, "rgba(79,168,255,0.14)");
+      grad.addColorStop(0.5, "rgba(79,168,255,0.05)");
+      grad.addColorStop(1, "rgba(79,168,255,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, s, s);
+      return new THREE.CanvasTexture(c);
+    }
+    const glowBackdropMat = new THREE.SpriteMaterial({
+      map: makeGlowBackdropTexture(),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 1,
+    });
+    const glowBackdrop = new THREE.Sprite(glowBackdropMat);
+    glowBackdrop.scale.set(8, 6, 1);
+    glowBackdrop.position.set(0, 2, -6);
+    scene.add(glowBackdrop);
 
     // Contact shadow
     const shadowCanvas = document.createElement("canvas");
@@ -909,6 +924,10 @@ export default function App() {
       const activeList = currentView === "projects" ? PROJECTS : currentView === "experience" ? EXPERIENCE : [];
       const activeItem = activeList.find((s) => s.id === sel);
 
+      const isDialogOpen = ["about", "freelance", "literature", "working", "case-study"].includes(currentView);
+      const glowTarget = isDialogOpen ? 0 : 1;
+      glowBackdropMat.opacity += (glowTarget - glowBackdropMat.opacity) * 0.08;
+
       const shellActive = isXray && !!activeItem && activeItem.parts.includes("shell");
 
       if (bodyMat) {
@@ -1047,7 +1066,6 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.textPrimary, fontFamily: FONT_SANS, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
         * { box-sizing: border-box; }
         .nav-btn {
           display: flex; align-items: center; gap: 12px; width: 100%;
@@ -1081,10 +1099,6 @@ export default function App() {
           backdrop-filter: blur(14px); border-radius: 16px;
         }
         .canvas-mount { width: 100%; height: 100%; touch-action: none; }
-        @keyframes fadeIn {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
         @keyframes genieOpen {
           0% { transform: scale(0.82) translateY(36px); opacity: 0; }
           60% { transform: scale(1.015) translateY(-4px); opacity: 1; }
@@ -1094,9 +1108,9 @@ export default function App() {
           position: absolute;
           top: 104px; left: 40px; right: 40px; bottom: 32px;
           border-radius: 20px;
-          background: rgba(8,10,16,0.82);
+          background: ${COLORS.panelGlass};
           border: 1px solid ${COLORS.panelBorder};
-          backdrop-filter: blur(24px);
+          backdrop-filter: blur(14px);
           overflow-y: auto;
           box-shadow: 0 24px 70px rgba(0,0,0,0.55);
           animation: genieOpen 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -1117,12 +1131,12 @@ export default function App() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          opacity: loading || !minSplashDone ? 1 : 0,
-          pointerEvents: loading || !minSplashDone ? "auto" : "none",
+          opacity: loading ? 1 : 0,
+          pointerEvents: loading ? "auto" : "none",
           transition: "opacity 1s ease",
         }}
       >
-        <div style={{ fontSize: 72, fontWeight: 400, color: COLORS.textPrimary, fontFamily: "'Great Vibes', cursive" }}>hello</div>
+        <div style={{ fontSize: 34, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: "0.02em" }}>Welcome</div>
       </div>
 
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, padding: "20px 28px", position: "relative", zIndex: 5 }}>
@@ -1188,7 +1202,7 @@ export default function App() {
       </div>
 
       {isHome && (
-        <div className="glass-panel home-panel" style={{ position: "absolute", left: 40, top: "50%", transform: "translateY(-50%)", width: 260, padding: 14, zIndex: 4, animation: "fadeIn 0.4s ease both" }}>
+        <div className="glass-panel home-panel" style={{ position: "absolute", left: 40, top: "50%", transform: "translateY(-50%)", width: 260, padding: 14, zIndex: 4 }}>
           <button className="nav-btn" onClick={() => openSection("experience")}>
             <Briefcase size={18} /> Experience
           </button>
@@ -1223,7 +1237,6 @@ export default function App() {
             fontStyle: "italic",
             padding: "0 40px",
             zIndex: 4,
-            animation: "fadeIn 0.5s ease both",
           }}
         >
           This car maps my engineering work — composites, thermal, structural, and electronics — onto the systems of a real vehicle, showing how it translates to automotive and mechanical engineering roles.
@@ -1399,7 +1412,7 @@ export default function App() {
       )}
 
       {isXrayView && (
-        <div className="glass-panel" style={{ position: "absolute", left: 24, top: 96, bottom: 24, width: 220, padding: "10px 0", zIndex: 4, overflowY: "auto", animation: "fadeIn 0.4s ease both" }}>
+        <div className="glass-panel" style={{ position: "absolute", left: 24, top: 96, bottom: 24, width: 220, padding: "10px 0", zIndex: 4, overflowY: "auto" }}>
           <div style={{ fontSize: 11, color: COLORS.textMuted, padding: "8px 16px", letterSpacing: "0.03em", textTransform: "uppercase" }}>
             {view === "projects" ? "Projects" : "Experience"}
           </div>
