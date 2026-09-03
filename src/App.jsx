@@ -480,33 +480,11 @@ export default function App() {
     grid.position.y = -0.02;
     scene.add(grid);
 
-    // Subtle blue glow behind the car — fills the otherwise-blank background.
-    // Kept deliberately faint, and faded out entirely behind dialog windows so it
-    // never interferes with text readability there.
-    function makeGlowBackdropTexture() {
-      const s = 1024;
-      const c = document.createElement("canvas");
-      c.width = c.height = s;
-      const ctx = c.getContext("2d");
-      const grad = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-      grad.addColorStop(0, "rgba(79,168,255,0.4)");
-      grad.addColorStop(0.5, "rgba(79,168,255,0.16)");
-      grad.addColorStop(1, "rgba(79,168,255,0)");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, s, s);
-      return new THREE.CanvasTexture(c);
-    }
-    const glowBackdropMat = new THREE.SpriteMaterial({
-      map: makeGlowBackdropTexture(),
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.NormalBlending,
-      opacity: 1,
-    });
-    const glowBackdrop = new THREE.Sprite(glowBackdropMat);
-    glowBackdrop.scale.set(24, 16, 1);
-    glowBackdrop.position.set(0, 2, -6);
-    scene.add(glowBackdrop);
+    // Subtle blue light behind the car — a real light instead of a gradient texture,
+    // so there's no gradient to dither/band regardless of how large it renders.
+    const backLight = new THREE.PointLight(0x4fa8ff, 8, 20, 2);
+    backLight.position.set(0, 2.5, -7);
+    scene.add(backLight);
 
     // Contact shadow
     const shadowCanvas = document.createElement("canvas");
@@ -924,10 +902,6 @@ export default function App() {
       const sel = stateRef.current.selectedId;
       const activeList = currentView === "projects" ? PROJECTS : currentView === "experience" ? EXPERIENCE : [];
       const activeItem = activeList.find((s) => s.id === sel);
-
-      const isDialogOpen = ["about", "freelance", "literature", "working", "case-study"].includes(currentView);
-      const glowTarget = isDialogOpen ? 0 : 1;
-      glowBackdropMat.opacity += (glowTarget - glowBackdropMat.opacity) * 0.08;
 
       const shellActive = isXray && !!activeItem && activeItem.parts.includes("shell");
 
