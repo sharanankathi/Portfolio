@@ -838,8 +838,8 @@ export default function App() {
     partAnchors.crashguard = new THREE.Vector3(0.6, 0.4, 2.0);
 
     // --- Camera framing ---
-    camera.position.set(6.0, 3.1, 7.9);
-    controls.target.set(0, 0.85, 0);
+    camera.position.set(4.0, 2.0, 5.2);
+    controls.target.set(0, 0.6, 0);
     controls.update();
 
     // --- Technical-drawing-style leader-line labels for whichever parts are highlighted ---
@@ -1152,7 +1152,7 @@ export default function App() {
           position: "absolute",
           inset: 0,
           top: 0,
-          transform: `translate(${isXrayView ? 75 : isHome ? 90 : 0}px, ${isXrayView && selected ? -90 : 0}px)`,
+          transform: `translate(${isXrayView ? 122 : isHome ? 150 : 0}px, ${isXrayView && selected ? -90 : 0}px)`,
           transition: "transform 0.4s ease",
         }}
       >
