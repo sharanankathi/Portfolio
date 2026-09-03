@@ -409,6 +409,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [modelInfo, setModelInfo] = useState(null);
+  const [minSplashDone, setMinSplashDone] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMinSplashDone(true), 2200);
+    return () => clearTimeout(t);
+  }, []);
 
   const list = view === "projects" ? PROJECTS : view === "experience" ? EXPERIENCE : [];
   const selected = list.find((s) => s.id === selectedId) || null;
@@ -488,8 +494,8 @@ export default function App() {
       c.width = c.height = s;
       const ctx = c.getContext("2d");
       const grad = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-      grad.addColorStop(0, "rgba(79,168,255,0.14)");
-      grad.addColorStop(0.5, "rgba(79,168,255,0.05)");
+      grad.addColorStop(0, "rgba(79,168,255,0.19)");
+      grad.addColorStop(0.5, "rgba(79,168,255,0.08)");
       grad.addColorStop(1, "rgba(79,168,255,0)");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, s, s);
@@ -892,7 +898,7 @@ export default function App() {
       if (!w || !h) return;
       const v = stateRef.current.view;
       const isXray = v === "projects" || v === "experience";
-      const shiftPx = isXray ? 122 : v === "home" ? 150 : 0;
+      const shiftPx = isXray || v === "home" ? 130 : 0;
       const fullW = w + VIEW_MARGIN * 2;
       const x = VIEW_MARGIN - shiftPx;
       camera.setViewOffset(fullW, h, x, 0, w, h);
@@ -1066,6 +1072,7 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.textPrimary, fontFamily: FONT_SANS, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
         * { box-sizing: border-box; }
         .nav-btn {
           display: flex; align-items: center; gap: 12px; width: 100%;
@@ -1131,12 +1138,12 @@ export default function App() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          opacity: loading ? 1 : 0,
-          pointerEvents: loading ? "auto" : "none",
+          opacity: loading || !minSplashDone ? 1 : 0,
+          pointerEvents: loading || !minSplashDone ? "auto" : "none",
           transition: "opacity 1s ease",
         }}
       >
-        <div style={{ fontSize: 34, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: "0.02em" }}>Welcome</div>
+        <div style={{ fontSize: 72, fontWeight: 400, color: COLORS.textPrimary, fontFamily: "'Great Vibes', cursive" }}>hello</div>
       </div>
 
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, padding: "20px 28px", position: "relative", zIndex: 5 }}>
