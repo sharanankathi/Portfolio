@@ -453,21 +453,7 @@ export default function App() {
     if (!mount) return;
 
     const scene = new THREE.Scene();
-    function makeBgGradientTexture() {
-      const w = 4,
-        h = 256;
-      const c = document.createElement("canvas");
-      c.width = w;
-      c.height = h;
-      const ctx = c.getContext("2d");
-      const g = ctx.createLinearGradient(0, 0, 0, h);
-      g.addColorStop(0, "#0b1120");
-      g.addColorStop(1, "#04060D");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, w, h);
-      return new THREE.CanvasTexture(c);
-    }
-    scene.background = makeBgGradientTexture();
+    scene.background = new THREE.Color(COLORS.bg);
     scene.fog = new THREE.Fog(new THREE.Color(COLORS.bg).getHex(), 10, 24);
     scene.environment = makeEnvTexture();
 
