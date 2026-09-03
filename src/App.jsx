@@ -459,7 +459,7 @@ export default function App() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.autoRotate = false;
+    controls.autoRotate = true;
     controls.autoRotateSpeed = 0.6;
     controls.minDistance = 3.5;
     controls.maxDistance = 12;
@@ -504,7 +504,7 @@ export default function App() {
       opacity: 1,
     });
     const glowBackdrop = new THREE.Sprite(glowBackdropMat);
-    glowBackdrop.scale.set(11, 8, 1);
+    glowBackdrop.scale.set(24, 16, 1);
     glowBackdrop.position.set(0, 2, -6);
     scene.add(glowBackdrop);
 
@@ -883,12 +883,29 @@ export default function App() {
       labelEls[key] = { g, line, dot, rect, text };
     });
 
+    // Shifts the rendered car left/right within the SAME canvas bounds (no DOM movement,
+    // so nothing for the page's overflow:hidden to clip — unlike the old CSS-transform
+    // approach, which physically moved the canvas element and got cut off at the edge).
+    const VIEW_MARGIN = 200;
+    function applyViewOffset() {
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      if (!w || !h) return;
+      const v = stateRef.current.view;
+      const isXray = v === "projects" || v === "experience";
+      const shiftPx = isXray ? 122 : v === "home" ? 150 : 0;
+      const fullW = w + VIEW_MARGIN * 2;
+      const x = VIEW_MARGIN - shiftPx;
+      camera.setViewOffset(fullW, h, x, 0, w, h);
+      camera.updateProjectionMatrix();
+    }
+
     function resize() {
       const w = mount.clientWidth;
       const h = mount.clientHeight;
       camera.aspect = w / h;
-      camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      applyViewOffset();
     }
     resize();
     const ro = new ResizeObserver(resize);
@@ -900,6 +917,7 @@ export default function App() {
       rafId = requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
       controls.update();
+      applyViewOffset();
 
       const currentView = stateRef.current.view;
       const isXray = currentView === "projects" || currentView === "experience";
@@ -1152,7 +1170,7 @@ export default function App() {
           position: "absolute",
           inset: 0,
           top: 0,
-          transform: `translate(${isXrayView ? 122 : isHome ? 150 : 0}px, ${isXrayView && selected ? -90 : 0}px)`,
+          transform: `translateY(${isXrayView && selected ? -90 : 0}px)`,
           transition: "transform 0.4s ease",
         }}
       >
