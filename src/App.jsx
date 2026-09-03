@@ -484,7 +484,7 @@ export default function App() {
     // Kept deliberately faint, and faded out entirely behind dialog windows so it
     // never interferes with text readability there.
     function makeGlowBackdropTexture() {
-      const s = 512;
+      const s = 1024;
       const c = document.createElement("canvas");
       c.width = c.height = s;
       const ctx = c.getContext("2d");
@@ -1067,6 +1067,7 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.textPrimary, fontFamily: FONT_SANS, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
         * { box-sizing: border-box; }
         .nav-btn {
           display: flex; align-items: center; gap: 12px; width: 100%;
@@ -1109,9 +1110,9 @@ export default function App() {
           position: absolute;
           top: 104px; left: 40px; right: 40px; bottom: 32px;
           border-radius: 20px;
-          background: ${COLORS.panelGlass};
+          background: rgba(8,10,16,0.82);
           border: 1px solid ${COLORS.panelBorder};
-          backdrop-filter: blur(14px);
+          backdrop-filter: blur(24px);
           overflow-y: auto;
           box-shadow: 0 24px 70px rgba(0,0,0,0.55);
           animation: genieOpen 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -1137,7 +1138,7 @@ export default function App() {
           transition: "opacity 1s ease",
         }}
       >
-        <div style={{ fontSize: 34, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: "0.02em" }}>Welcome</div>
+        <div style={{ fontSize: 56, fontWeight: 700, color: COLORS.textPrimary, fontFamily: "'Dancing Script', cursive" }}>Hello</div>
       </div>
 
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, padding: "20px 28px", position: "relative", zIndex: 5 }}>
