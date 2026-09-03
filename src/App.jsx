@@ -838,7 +838,7 @@ export default function App() {
     partAnchors.crashguard = new THREE.Vector3(0.6, 0.4, 2.0);
 
     // --- Camera framing ---
-    camera.position.set(2.51, 1.48, 3.26);
+    camera.position.set(4.0, 2.0, 5.2);
     controls.target.set(0, 0.6, 0);
     controls.update();
 
@@ -1152,7 +1152,7 @@ export default function App() {
           position: "absolute",
           inset: 0,
           top: 0,
-          transform: `translate(${isXrayView ? 40 : isHome ? 50 : 0}px, ${isXrayView && selected ? -90 : 0}px)`,
+          transform: `translate(${isXrayView ? 122 : isHome ? 150 : 0}px, ${isXrayView && selected ? -90 : 0}px)`,
           transition: "transform 0.4s ease",
         }}
       >
