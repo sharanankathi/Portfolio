@@ -500,7 +500,7 @@ export default function App() {
       map: makeGlowBackdropTexture(),
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
       opacity: 1,
     });
     const glowBackdrop = new THREE.Sprite(glowBackdropMat);
