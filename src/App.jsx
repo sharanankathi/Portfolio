@@ -459,7 +459,7 @@ export default function App() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.autoRotate = true;
+    controls.autoRotate = false;
     controls.autoRotateSpeed = 0.6;
     controls.minDistance = 3.5;
     controls.maxDistance = 12;
