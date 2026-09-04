@@ -53,6 +53,7 @@ const PART_LABELS = {
   heatsink: "Heatsink",
   ecu: "ECU / control board",
   harness: "Wiring harness",
+  dashboard: "Dashboard",
 };
 
 const PROJECTS = [
@@ -128,7 +129,7 @@ const EXPERIENCE = [
     id: "usc-composites",
     label: "USC Composites Lab",
     icon: FlaskConical,
-    parts: ["shell", "crashguard"],
+    parts: ["shell", "crashguard", "dashboard"],
     title: "Composites Research Engineer & Teaching Assistant",
     source: "USC Advanced Composites Lab · Oct 2024 – Dec 2025",
     description: "Research and TA role designing, fabricating, and root-causing composite structures for SAMPE competition entries.",
@@ -554,7 +555,7 @@ export default function App() {
     }
 
     let bodyMat = null;
-    const shellMaterials = []; // { mat, homeOpacity } — everything that should ghost-out in x-ray mode
+    const shellMaterials = []; // { mat, homeOpacity, isBodyPanel } — everything that should ghost-out in x-ray mode
     const SHELL_MATERIAL_NAMES = [
       "BMW_E30_M3_PLASTIC",
       "BMW_E30_M3_CHROME",
@@ -565,6 +566,9 @@ export default function App() {
       "BMW_E30_M3_HEADLIGHT_REFLECTOR",
       "BMW_E30_M3_LENS",
     ];
+    // Only actual body panel trim highlights when "Body panels" is the active selection —
+    // lights, lenses, glass, chrome, and mirrors should just fade normally like everything else.
+    const BODY_PANEL_MATERIAL_NAMES = ["BMW_E30_M3_PLASTIC"];
     const textureLoader = new THREE.TextureLoader();
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
@@ -606,11 +610,13 @@ export default function App() {
             } else if (SHELL_MATERIAL_NAMES.includes(matName)) {
               // Every other body-adjacent part (chrome, plastic trim, windows, mirror, lenses)
               // needs to ghost out along with the paint, or the "shell" looks broken/patchy
-              // in x-ray mode instead of uniformly translucent.
+              // in x-ray mode instead of uniformly translucent. Only the actual body-panel
+              // trim should brighten on selection, though — not lights, glass, or chrome.
               const mat = child.material.clone();
               mat.transparent = true;
               const homeOpacity = mat.opacity ?? 1;
-              shellMaterials.push({ mat, homeOpacity });
+              const isBodyPanel = BODY_PANEL_MATERIAL_NAMES.includes(matName);
+              shellMaterials.push({ mat, homeOpacity, isBodyPanel });
               child.material = mat;
             }
           });
@@ -813,6 +819,16 @@ export default function App() {
     }
     partAnchors.ecu = new THREE.Vector3(0.24, 0.85, 0.6);
 
+    // Dashboard — wide panel spanning the cabin just behind the windshield, with a small
+    // raised instrument cluster on the driver's side.
+    const dashboard = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.08, 0.22), chassisMat());
+    dashboard.position.set(0, 0.78, 0.95);
+    registerMesh("dashboard", dashboard);
+    const instrumentCluster = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.06, 0.1), chassisMat());
+    instrumentCluster.position.set(0.35, 0.83, 1.0);
+    registerMesh("dashboard", instrumentCluster);
+    partAnchors.dashboard = new THREE.Vector3(0.5, 0.85, 0.95);
+
     // Wiring harness running the length of the car — routed above the battery box top (0.42)
     // with margin, since it previously passed straight through the battery's center and
     // z-fought with it depending on viewing angle.
@@ -962,10 +978,10 @@ export default function App() {
         }
       }
 
-      shellMaterials.forEach(({ mat, homeOpacity }) => {
+      shellMaterials.forEach(({ mat, homeOpacity, isBodyPanel }) => {
         let target;
         if (!isXray) target = homeOpacity;
-        else if (shellActive) target = Math.max(homeOpacity, 0.7);
+        else if (shellActive && isBodyPanel) target = Math.max(homeOpacity, 0.7);
         else if (sel) target = homeOpacity * 0.05;
         else target = homeOpacity * 0.3;
         mat.opacity += (target - mat.opacity) * 0.06;
@@ -1411,9 +1427,44 @@ export default function App() {
 
       {isWorking && (
         <div className="dialog-window" style={{ zIndex: 6 }}>
-          <div style={{ maxWidth: 760, margin: "0 auto", padding: "20px 28px 80px" }}>
-            <h1 style={{ margin: "0 0 12px", fontSize: 28, fontWeight: 700 }}>What I'm Working On</h1>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: PAPER.textMuted, margin: 0 }}>Coming soon.</p>
+          <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 28px 80px" }}>
+            <h1 style={{ margin: "0 0 6px", fontSize: 28, fontWeight: 700 }}>What I'm Working On</h1>
+            <div style={{ fontSize: 16, fontWeight: 600, color: PAPER.accent, marginBottom: 20 }}>
+              Hybrid marine-layer / seawater cooling for coastal data centers
+            </div>
+
+            <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}`, marginBottom: 24 }}>
+              <img src="/images/working/hybrid-cooling-platform.jpg" alt="Hybrid cooling platform concept sketch" style={{ width: "100%", height: "auto", display: "block" }} />
+            </div>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Why this research matters</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Data centers are running into a hard physical limit: cooling now accounts for roughly 40% of their total energy consumption, and
+              as AI and cloud workloads push power density higher, that cooling burden is only growing. At the same time, land near major
+              compute hubs is increasingly scarce, and freshwater-based cooling is coming under scrutiny as data centers compete with
+              communities for water resources during droughts.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              The San Francisco Bay Area sits on a coastline with an unusual, underexploited advantage: a persistent marine-layer breeze that
+              runs cool almost year-round, intensifying in summer exactly when cooling demand and grid strain peak elsewhere. Existing projects
+              near the Bay — like Nautilus Data Technologies' water-cooled facilities — have already shown that ocean-adjacent siting is viable,
+              but they rely on pumped seawater as the primary cooling mechanism. That leaves the region's free, self-regulating air resource
+              almost entirely unused, and it means the pumping systems bear the full duty cycle, energy cost, and corrosion-driven structural
+              wear on their own.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              This research is motivated by a specific, unanswered question: how much of that pumping burden can be offset by simply using the
+              air that's already blowing past the site for free? No existing study models a hybrid system where marine-layer air handles the
+              baseline cooling load and seawater pumping is reserved only for the residual gap — nor has anyone applied offshore oil-platform
+              corrosion engineering to an above-water (not submerged, not barge-mounted) data center structure exposed to that same marine
+              environment.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: 0 }}>
+              The goal isn't to prove that ocean-adjacent data centers work — that's already been demonstrated. It's to quantify whether a
+              smarter, hybrid approach to harnessing this specific coastline's climate can meaningfully reduce energy costs, water pumping
+              volume, and structural degradation compared to the water-only model currently in use — and to do that with real climate data and
+              engineering literature rather than assumption.
+            </p>
           </div>
         </div>
       )}
