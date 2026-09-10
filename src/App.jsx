@@ -58,50 +58,109 @@ const PART_LABELS = {
 
 const PROJECTS = [
   {
-    id: "thermal",
-    label: "BGA Thermal Analysis",
+    id: "bga-soc-0.3w",
+    label: "BGA SoC (0.3W)",
     icon: Thermometer,
     parts: ["radiator", "heatsink"],
-    title: "BGA SoC Thermal-Structural Analysis",
-    source: "ANSYS Icepak, ANSYS Mechanical · 2025",
-    context: "Traced a warpage failure back to its root physical cause",
+    title: "Low-Power BGA Chip Package — 0.3W Thermal Analysis",
+    source: "SolidWorks · ANSYS Icepak/Mechanical · 2025",
+    context: "Natural convection cooling for a low-power BGA package",
     stats: [
-      { label: "Steady state", value: "90°C" },
-      { label: "Transient peak", value: "80.2°C @ 159s" },
+      { label: "Junction temp", value: "90°C" },
+      { label: "Thermal margin", value: "35°C" },
       { label: "Von Mises stress", value: "865 MPa" },
       { label: "Warpage", value: "15.5 µm" },
     ],
     description:
-      "Ran a coupled thermal-structural simulation of a BGA SoC package in ANSYS Icepak and Mechanical across a 0.3–35W dissipation range, root-caused the warpage to a CTE mismatch (solder 21 ppm/°C vs. substrate 17 ppm/°C), and proposed underfill epoxy plus a low-CTE substrate as corrective changes. A companion 35W CPU case under fan cooling (Icepak, 10mm radius, 0.01 m³/s) topped out at 119°C die temperature.",
+      "Modeled a 69-body BGA chip package (die, mold compound, substrate, solder balls, PCB) in SolidWorks and ran a coupled thermal-structural analysis in ANSYS Icepak/Mechanical under natural convection (h ≈ 5–10 W/m²·K). At 0.3W, the die junction reached 90°C — a 65°C rise with a healthy 35°C margin to its 125°C rating — but the CTE mismatch between solder (21 ppm/°C) and substrate (17 ppm/°C) still drove 865 MPa of peak stress at the corner solder balls and 15.5 µm of warpage.",
     relevantTo: ["Battery thermal management (BTMS)", "Power electronics cooling", "Thermal-structural simulation (ANSYS Icepak)"],
     caseStudy: {
-      impact: "Traced a chip-package warpage failure back to a specific material mismatch, and proposed the fix.",
+      impact: "Showed that even a 0.3W part isn't immune to CTE-mismatch fatigue risk, and traced it to a specific fix.",
       metrics: [
-        { value: "90°C", label: "Steady state" },
-        { value: "865 MPa", label: "Von Mises stress" },
+        { value: "90°C", label: "Junction temp (+65°C rise)" },
+        { value: "35°C", label: "Margin to 125°C rating" },
+        { value: "865 MPa", label: "Peak solder stress" },
         { value: "15.5 µm", label: "Warpage" },
-        { value: "119°C", label: "CPU die temp, fan-cooled" },
       ],
-      tools: ["ANSYS Icepak", "ANSYS Mechanical", "SolidWorks"],
+      tools: ["SolidWorks", "ANSYS Icepak", "ANSYS Mechanical"],
       challenge: {
-        problem: "A BGA SoC package showed warpage and stress risk across a 0.3–35W dissipation range, with delamination a real possibility if the root cause wasn't identified.",
-        approach: "Modeled the full package stack (die, TIM, spreader, substrate, PCB) in SolidWorks, then ran a coupled thermal-structural simulation across the power range in ANSYS Icepak and Mechanical.",
-        result: "Root-caused the warpage to a CTE mismatch between the solder (21 ppm/°C) and substrate (17 ppm/°C), and proposed underfill epoxy plus a low-CTE substrate as corrective changes.",
+        problem: "Even at a modest 0.3W, does natural convection keep this BGA package within a safe thermal and structural margin — or does the CTE mismatch between solder and substrate still create a real fatigue risk?",
+        approach: "Built the full 69-body package stack in SolidWorks (die, mold compound, substrate, solder ball array, PCB), then ran a natural-convection thermal simulation in ANSYS Icepak (ambient 25°C, h ≈ 5–10 W/m²·K) followed by a coupled structural analysis in ANSYS Mechanical using the resulting temperature field.",
+        result: "Junction temperature settled at 90°C — a 65°C rise with a healthy 35°C margin — but peak solder stress still reached 865 MPa at the corner balls, with 15.5 µm of warpage, confirming the CTE mismatch matters even at low power.",
       },
       process: [
         {
           title: "Model the package stack",
-          description: "Built a realistic BGA SoC model — die, TIM, spreader, substrate, and PCB — in SolidWorks.",
-          images: [{ src: "/images/bga/cpu-package-iso.jpg", caption: "Initial BGA package model (SolidWorks)" }],
+          description: "Built all 69 solid bodies of the package in SolidWorks — die, mold compound, substrate, solder ball array (via revolve + linear pattern), and PCB.",
+          images: [{ src: "/images/bga/bga-v3-iso.jpg", caption: "BGA package model, 69 solid bodies (SolidWorks)" }],
         },
         {
-          title: "Run the coupled simulation",
-          description: "Simulated 0.3–35W dissipation with convection (h = 20–750 W/m²·K) in ANSYS Icepak and Mechanical, finding a 90°C steady state and 865 MPa von Mises stress.",
+          title: "Run the natural-convection thermal simulation",
+          description: "Applied 0.3W to the die and h ≈ 5–10 W/m²·K across all exposed surfaces in ANSYS Icepak, finding a 90°C junction temperature and a thermal gradient down to 27°C at the PCB edge.",
         },
         {
-          title: "Revise the model & propose fixes",
-          description: "Increased the mold size in a revised model to evaluate warpage sensitivity, and proposed underfill epoxy plus a low-CTE substrate as corrective changes. A companion 35W CPU case under fan cooling (10mm radius, 0.01 m³/s) topped out at 119°C.",
-          images: [{ src: "/images/bga/bga-v3-iso.jpg", caption: "Revised model — increased mold size" }],
+          title: "Solve the structural response",
+          description: "Fed the temperature field into ANSYS Mechanical, finding 865 MPa of peak solder stress at the corner balls and 15.5 µm of concave warpage, driven by the 4 ppm/°C CTE mismatch between solder and substrate.",
+        },
+        {
+          title: "Identify the fix",
+          description: "Traced the thermal bottleneck to the mold compound (≈60% of total thermal resistance) and proposed underfill epoxy, a low-CTE substrate (<2 ppm/°C mismatch), and a high-k mold compound (>2 W/m·K, an estimated 8–12°C junction temperature reduction).",
+        },
+      ],
+    },
+  },
+  {
+    id: "cpu-package-35w",
+    label: "CPU Package (35W)",
+    icon: Thermometer,
+    parts: ["radiator", "heatsink"],
+    title: "High-Performance CPU Package — 35W Thermal Analysis",
+    source: "SolidWorks · ANSYS Icepak/Mechanical · 2025",
+    context: "Forced convection cooling for a high-power CPU-class package",
+    stats: [
+      { label: "Junction temp", value: "80.2°C" },
+      { label: "Transient peak", value: "80.2°C @ 159s" },
+      { label: "Von Mises stress", value: "865 MPa" },
+      { label: "IHS flatness", value: "<5 µm" },
+    ],
+    description:
+      "Modeled a 295-body high-performance CPU package (die, indium TIM1, copper IHS, multilayer substrate, high-density solder array, PCB) in SolidWorks and ran a coupled thermal-structural analysis under forced convection (h = 1,500–5,000 W/m²·K at the IHS, ~60 CFM-class airflow). At 35W — 117x the power of the 0.3W package above — the copper heat spreader and forced convection held junction temperature to 80.2°C, actually a smaller temperature rise than the naturally-convected low-power part, while identical 865 MPa solder stress in both cases confirmed that CTE-mismatch fatigue risk is independent of absolute power level.",
+    relevantTo: ["Battery thermal management (BTMS)", "Power electronics cooling", "Thermal-structural simulation (ANSYS Icepak)"],
+    caseStudy: {
+      impact: "Proved a copper IHS + forced convection can out-perform a naturally-cooled low-power part on temperature rise, while surfacing a new failure mode.",
+      metrics: [
+        { value: "80.2°C", label: "Junction temp, steady state" },
+        { value: "+55.2°C", label: "Rise (20–25°C margin)" },
+        { value: "865 MPa", label: "Peak solder stress" },
+        { value: "<5 µm", label: "IHS flatness deviation" },
+      ],
+      tools: ["SolidWorks", "ANSYS Icepak", "ANSYS Mechanical"],
+      challenge: {
+        problem: "At 35W — over 100x the power of a low-power BGA part — natural convection can't keep up. Does a copper heat spreader plus forced convection actually solve the problem, and does the higher power level make the CTE-mismatch stress risk worse?",
+        approach: "Built the full 295-body package (die, indium TIM1, copper integrated heat spreader, multilayer substrate, high-density solder array, PCB) in SolidWorks, then simulated forced convection in ANSYS Icepak — h = 1,500–5,000 W/m²·K at the IHS (60 CFM-class fan), h = 100–300 W/m²·K at the PCB underside — before running the coupled structural analysis in ANSYS Mechanical.",
+        result: "The copper IHS and forced convection held junction temperature to 80.2°C, actually a smaller temperature rise than the 0.3W naturally-convected package. But peak solder stress came out identical at 865 MPa — confirming the CTE-mismatch fatigue mechanism doesn't care how much power the die is dissipating.",
+      },
+      process: [
+        {
+          title: "Model the high-performance package stack",
+          description: "Built all 295 solid bodies in SolidWorks — die, indium TIM1, copper integrated heat spreader (IHS), multilayer substrate, a denser solder ball array, and the server PCB.",
+          images: [{ src: "/images/bga/cpu-package-iso.jpg", caption: "High-performance CPU package, 295 solid bodies (SolidWorks)" }],
+        },
+        {
+          title: "Simulate forced convection",
+          description: "Applied 35W to the die and forced-convection boundary conditions in ANSYS Icepak (h = 1,500–5,000 W/m²·K at the IHS, 100–300 W/m²·K at the PCB), finding a 78.5°C die hotspot and a 62°C IHS center.",
+        },
+        {
+          title: "Run the transient response",
+          description: "Tracked the package from cold start to steady state: 45°C at the die by t=10s, 95% of steady state by t=90s, stabilizing at 80.2°C by t=159s — an ~8–12 second die-to-IHS thermal time constant.",
+        },
+        {
+          title: "Solve the structural response",
+          description: "Found 865 MPa of peak solder stress (identical to the 0.3W package) and <5 µm of IHS flatness deviation — the stiff copper IHS constrains warpage even under a much larger thermal gradient.",
+        },
+        {
+          title: "Identify the fix",
+          description: "Flagged TIM1 pump-out under power cycling as the primary long-term risk, and proposed an indium/liquid-metal TIM1 (cutting die-to-IHS delta-T from 6°C to <2°C), a frame seal around TIM1, and substrate CTE engineering toward 19–20 ppm/°C to pull solder stress below an 800 MPa fatigue threshold.",
         },
       ],
     },
@@ -1138,8 +1197,11 @@ export default function App() {
           animation: genieOpen 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
         @media (max-width: 780px) {
-          .home-panel { position: static !important; margin: 20px; width: auto !important; }
+          .home-panel { position: static !important; margin: 20px; width: auto !important; transform: none !important; }
           .dialog-window { left: 12px; right: 12px; top: 96px; bottom: 12px; }
+          .xray-sidebar { left: 12px !important; right: 12px !important; top: 90px !important; bottom: auto !important; width: auto !important; max-height: 140px; }
+          .xray-detail { left: 12px !important; right: 12px !important; bottom: 12px !important; padding: 16px !important; max-height: calc(100vh - 260px); overflow-y: auto; }
+          .xray-banner { left: 12px !important; right: 12px !important; top: 244px !important; }
         }
       `}</style>
 
@@ -1250,36 +1312,22 @@ export default function App() {
         <div
           style={{
             position: "absolute",
-            bottom: 46,
+            bottom: 16,
             left: 0,
             right: 0,
-            textAlign: "center",
-            fontSize: 11,
-            color: COLORS.accent,
-            padding: "0 40px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            padding: "0 24px",
             zIndex: 4,
           }}
         >
-          🚧 Still working on this website — more content going up regularly
-        </div>
-      )}
-
-      {isHome && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 24,
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            fontSize: 12,
-            color: COLORS.textMuted,
-            fontStyle: "italic",
-            padding: "0 40px",
-            zIndex: 4,
-          }}
-        >
-          This car maps my engineering work — composites, thermal, structural, and electronics — onto the systems of a real vehicle, showing how it translates to automotive and mechanical engineering roles.
+          <div style={{ textAlign: "center", fontSize: 11, color: COLORS.accent }}>🚧 Still working on this website — more content going up regularly</div>
+          <div style={{ textAlign: "center", fontSize: 12, color: COLORS.textMuted, fontStyle: "italic", maxWidth: 700 }}>
+            This car maps my engineering work — composites, thermal, structural, and electronics — onto the systems of a real vehicle, showing how it
+            translates to automotive and mechanical engineering roles.
+          </div>
         </div>
       )}
 
@@ -1922,7 +1970,7 @@ export default function App() {
       )}
 
       {isXrayView && (
-        <div className="glass-panel" style={{ position: "absolute", left: 24, top: 96, bottom: 24, width: 220, padding: "10px 0", zIndex: 4, overflowY: "auto" }}>
+        <div className="glass-panel xray-sidebar" style={{ position: "absolute", left: 24, top: 96, bottom: 24, width: 220, padding: "10px 0", zIndex: 4, overflowY: "auto" }}>
           <div style={{ fontSize: 11, color: COLORS.textMuted, padding: "8px 16px", letterSpacing: "0.03em", textTransform: "uppercase" }}>
             {view === "projects" ? "Projects" : "Experience"}
           </div>
@@ -1941,6 +1989,7 @@ export default function App() {
 
       {isXrayView && selected && selected.relevantTo && (
         <div
+          className="xray-banner"
           style={{
             position: "absolute",
             left: 264,
@@ -1983,7 +2032,7 @@ export default function App() {
       <div style={{ flex: 1 }} />
 
       {isXrayView && selected && (
-        <div className="glass-panel" style={{ position: "absolute", left: 24, right: 24, bottom: 24, padding: "20px 26px", zIndex: 4, maxWidth: 900, margin: "0 auto" }}>
+        <div className="glass-panel xray-detail" style={{ position: "absolute", left: 24, right: 24, bottom: 24, padding: "20px 26px", zIndex: 4, maxWidth: 900, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 4 }}>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: COLORS.textPrimary }}>{selected.title}</h2>
             <span style={{ fontSize: 12, color: COLORS.accent, fontFamily: FONT_MONO }}>{selected.source}</span>
