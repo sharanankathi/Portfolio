@@ -454,12 +454,12 @@ export default function App() {
     if (!mount) return;
 
     const scene = new THREE.Scene();
-    scene.background = null;
+    scene.background = new THREE.Color(COLORS.bg);
     scene.fog = new THREE.Fog(new THREE.Color(COLORS.bg).getHex(), 10, 24);
     scene.environment = makeEnvTexture();
 
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     mount.appendChild(renderer.domElement);
 
@@ -486,6 +486,31 @@ export default function App() {
     const grid = new THREE.GridHelper(30, 30, 0x1a2740, 0x0c1220);
     grid.position.y = -0.02;
     scene.add(grid);
+
+    function makeGlowBackdropTexture() {
+      const s = 512;
+      const c = document.createElement("canvas");
+      c.width = c.height = s;
+      const ctx = c.getContext("2d");
+      const grad = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+      grad.addColorStop(0, "rgba(79,168,255,0.32)");
+      grad.addColorStop(0.5, "rgba(79,168,255,0.15)");
+      grad.addColorStop(1, "rgba(79,168,255,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, s, s);
+      return new THREE.CanvasTexture(c);
+    }
+    const glowBackdropMat = new THREE.SpriteMaterial({
+      map: makeGlowBackdropTexture(),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 1,
+    });
+    const glowBackdrop = new THREE.Sprite(glowBackdropMat);
+    glowBackdrop.scale.set(8, 6, 1);
+    glowBackdrop.position.set(0, 2, -6);
+    scene.add(glowBackdrop);
 
     // Contact shadow
     const shadowCanvas = document.createElement("canvas");
@@ -919,6 +944,10 @@ export default function App() {
       const activeList = currentView === "projects" ? PROJECTS : currentView === "experience" ? EXPERIENCE : [];
       const activeItem = activeList.find((s) => s.id === sel);
 
+      const isDialogOpen = ["about", "freelance", "literature", "working", "case-study"].includes(currentView);
+      const glowTarget = isDialogOpen ? 0 : 1;
+      glowBackdropMat.opacity += (glowTarget - glowBackdropMat.opacity) * 0.08;
+
       const shellActive = isXray && !!activeItem && activeItem.parts.includes("shell");
 
       if (bodyMat) {
@@ -1163,19 +1192,8 @@ export default function App() {
           top: 0,
           transform: `translateY(${isXrayView && selected ? -90 : 0}px)`,
           transition: "transform 0.4s ease",
-          background: COLORS.bg,
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "radial-gradient(circle at 50% 42%, rgba(79,168,255,0.32) 0%, rgba(79,168,255,0.14) 35%, rgba(79,168,255,0) 68%)",
-            opacity: ["about", "freelance", "literature", "working", "case-study"].includes(view) ? 0 : 1,
-            transition: "opacity 0.5s ease",
-            pointerEvents: "none",
-          }}
-        />
         <div ref={mountRef} className="canvas-mount" style={{ width: "100%", height: "100%" }} />
         {loading && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.textMuted, fontSize: 13 }}>
