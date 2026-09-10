@@ -944,7 +944,7 @@ export default function App() {
       const activeList = currentView === "projects" ? PROJECTS : currentView === "experience" ? EXPERIENCE : [];
       const activeItem = activeList.find((s) => s.id === sel);
 
-      const isDialogOpen = ["about", "freelance", "literature", "working", "case-study"].includes(currentView);
+      const isDialogOpen = ["about", "freelance", "literature", "working", "case-study", "deepdive"].includes(currentView);
       const glowTarget = isDialogOpen ? 0 : 1;
       glowBackdropMat.opacity += (glowTarget - glowBackdropMat.opacity) * 0.08;
 
@@ -1079,6 +1079,7 @@ export default function App() {
   const isFreelance = view === "freelance";
   const isLiterature = view === "literature";
   const isWorking = view === "working";
+  const isDeepDive = view === "deepdive";
   const isCaseStudy = view === "case-study";
   const isSimplePage = isAbout || isFreelance || isLiterature || isWorking;
   const isXrayView = view === "projects" || view === "experience";
@@ -1163,8 +1164,8 @@ export default function App() {
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, padding: "20px 28px", position: "relative", zIndex: 5 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {!isHome && (
-            <button className="back-btn" onClick={isCaseStudy ? backFromCaseStudy : goHome}>
-              <ArrowLeft size={14} /> {isCaseStudy ? (caseStudyOrigin === "projects" ? "Projects" : "Experience") : "Home"}
+            <button className="back-btn" onClick={isCaseStudy ? backFromCaseStudy : isDeepDive ? () => setView("working") : goHome}>
+              <ArrowLeft size={14} /> {isCaseStudy ? (caseStudyOrigin === "projects" ? "Projects" : "Experience") : isDeepDive ? "What I'm Working On" : "Home"}
             </button>
           )}
           <div>
@@ -1445,6 +1446,15 @@ export default function App() {
         <div className="dialog-window" style={{ zIndex: 6 }}>
           <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 28px 80px" }}>
             <h1 style={{ margin: "0 0 6px", fontSize: 28, fontWeight: 700 }}>What I'm Working On</h1>
+            <div style={{ fontSize: 14, color: PAPER.textMuted, marginBottom: 6 }}>
+              Interested?{" "}
+              <button
+                onClick={() => setView("deepdive")}
+                style={{ background: "none", border: "none", padding: 0, color: PAPER.accent, fontSize: 14, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}
+              >
+                Deep dive here
+              </button>
+            </div>
             <div style={{ fontSize: 16, fontWeight: 600, color: PAPER.accent, marginBottom: 20 }}>
               Hybrid marine-layer / seawater cooling for coastal data centers
             </div>
@@ -1480,6 +1490,432 @@ export default function App() {
               smarter, hybrid approach to harnessing this specific coastline's climate can meaningfully reduce energy costs, water pumping
               volume, and structural degradation compared to the water-only model currently in use — and to do that with real climate data and
               engineering literature rather than assumption.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isDeepDive && (
+        <div className="dialog-window" style={{ zIndex: 6 }}>
+          <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 28px 80px" }}>
+            <h1 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 700, lineHeight: 1.3 }}>
+              Hybrid Marine-Layer Air and Seawater-Pumped Cooling for an Above-Water Offshore Data Center in the San Francisco Bay Area
+            </h1>
+            <div style={{ fontSize: 14, fontStyle: "italic", color: PAPER.textMuted, marginBottom: 4 }}>A Feasibility Study and Conceptual Design Model</div>
+            <div style={{ fontSize: 12, color: PAPER.accent, fontFamily: FONT_MONO, marginBottom: 28 }}>Working draft — conceptual design and feasibility modeling phase</div>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Abstract</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              Data center cooling now accounts for roughly 40% of total facility energy consumption, and rising compute density and freshwater
+              scarcity are pushing operators toward alternative cooling strategies sited near large, stable water bodies. This paper examines
+              the feasibility of an above-water, pier- or platform-mounted data center sited along the San Francisco Bay coastline, cooled by a
+              hybrid architecture: an indirect air-side economizer that uses the region's persistent marine-layer breeze as the primary
+              (baseline) cooling resource, supplemented by pumped seawater through a secondary heat-exchanger loop only when ambient air alone
+              cannot meet the target chilled-water supply temperature. Unlike existing Bay-adjacent water-cooled facilities (notably Nautilus
+              Data Technologies' Stockton, CA installation, which pumps continuously), this hybrid design is intended to substantially reduce
+              seawater pump duty cycle, and by extension pump energy consumption and seawater-loop corrosion exposure, while remaining within
+              ASHRAE Class A2 thermal guidelines. Using three years of hourly climate reanalysis data and two years of measured San Francisco
+              Bay water temperature, we construct a duty-cycle feasibility model, an energy/cost model referenced to a 1 MW facility, and a
+              corrosion/maintenance cost model that separates fixed, site-driven structural protection (splash-zone corrosion on platform legs,
+              which is largely design-independent) from variable, duty-cycle-dependent seawater-loop maintenance. Results indicate that a
+              design targeting a 21°C chilled-water supply with a 3°C heat-exchanger approach allows air alone to satisfy cooling demand for
+              approximately 91% of annual hours, with seawater covering an additional 6%, at an estimated 84% reduction in annual cooling
+              energy cost relative to a conventional mechanical-chiller baseline. A duty-cycle-scaled corrosion model, grounded in offshore
+              oil-and-gas corrosion engineering literature, suggests seawater-loop maintenance cost reductions of 66–94% relative to a
+              continuously-pumped baseline, depending on whether a linear or literature-informed nonlinear ("floor") decay model is applied. We
+              identify the joint modeling of hybrid air/seawater duty cycling and corrosion cost as a genuine, unaddressed gap in the
+              literature, and outline the assumptions, data limitations, and next steps — including empirical validation and expert
+              consultation — required before this concept could inform an actual engineering design.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>1. Introduction and Motivation</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Cooling accounts for approximately 40% of total data center energy consumption, and this burden is intensifying as AI and cloud
+              workloads push power density higher. At the same time, land near major compute hubs is increasingly scarce, and freshwater-based
+              cooling is under growing scrutiny as data centers compete with surrounding communities for water resources during drought
+              periods.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              The San Francisco Bay Area coastline offers a climate resource that is, at present, largely unexploited by existing water-cooled
+              facilities in the region: a persistent marine-layer breeze that keeps coastal air relatively cool and stable across much of the
+              year. Nautilus Data Technologies has already demonstrated that ocean- and river-adjacent siting is commercially viable in this
+              region — its Stockton, CA barge-mounted facility has operated since 2021 — but that design, and its earlier, rejected Alameda
+              pier proposal, rely on continuous or near-continuous pumped-water cooling as the primary mechanism. This leaves the marine-layer
+              air resource unused and places the full energy, mechanical, and corrosion burden on the pumping system.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              This research is motivated by a specific, unanswered question: how much of that pumping burden can be offset by using the air
+              that is already moving past the site, at no marginal fuel cost? We propose and evaluate a hybrid design in which marine-layer
+              air, drawn through an indirect economizer, handles baseline cooling load, and pumped seawater is reserved for the residual gap —
+              with the structure itself sited above the water on a pier or platform, rather than submerged or barge-mounted. A secondary
+              contribution of this work is the cross-application of offshore oil-and-gas corrosion engineering — splash-zone protection,
+              cathodic protection design life, and glass-fiber-reinforced-polymer (GFRP) composite substitution — to this above-water data
+              center context, an area with no direct precedent in the published literature.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              The objective of this paper is not to demonstrate that ocean-adjacent data centers are viable — that has already been shown —
+              but to quantify whether a hybrid, duty-cycle-reducing approach measurably improves on the existing water-only model, using real
+              climate and engineering data rather than assumption.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>2. Literature Review and Positioning of Novelty</h2>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>2.1 Free-air and economizer cooling</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Free-air and economizer cooling are mature, deployed data center strategies. Meta's air-cooled facility in Prineville, Oregon,
+              reports a Power Usage Effectiveness (PUE) of approximately 1.07, compared to an industry average nearer 1.55. Indirect air-side
+              economizers, in which outside air cools a closed water or refrigerant loop through a heat exchanger without directly contacting
+              IT equipment, avoid the humidity and particulate exposure risks of direct free-air cooling and are the architecture adopted in
+              this study.
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>2.2 Water-cooled and marine-adjacent data centers</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Nautilus Data Technologies operates a barge-mounted, water-cooled facility at the Port of Stockton, California (approximately 6.5
+              MW critical IT load, a company-reported PUE of 1.15, and a primary/secondary heat-exchanger loop drawing roughly 4,500 GPM — up
+              to 12,000 GPM installed capacity — from the San Joaquin River). Nautilus separately proposed, but did not build, a pier-mounted
+              facility at Alameda Point on San Francisco Bay, which would have drawn and discharged approximately 10,000 GPM continuously;
+              this proposal was unanimously rejected by the Alameda City Council in 2019 following environmental objections centered on
+              continuous thermal discharge and marine-life entrainment risk. These cases establish that water-cooled, Bay-adjacent data
+              centers are technically and (in Stockton's case) commercially viable, but also that continuous, once-through seawater use faces
+              a real regulatory ceiling in this specific region.
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>2.3 Offshore corrosion engineering</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              The offshore oil-and-gas industry provides an extensive, quantitative literature on marine corrosion that has not previously been
+              applied to above-water data center structures. Corrosion protection systems have been estimated to represent up to 10% of total
+              platform capital investment (Hanson & Hurst, 1969), and corrosion-related maintenance has been estimated at 25–40% of operating
+              costs industry-wide. Splash-zone protection is disproportionately expensive relative to atmospheric or submerged zones — on the
+              order of 10 times the cost per unit area of atmospheric coatings, and potentially up to 50 times the initial application cost
+              when offshore access and maintenance are included. Cathodic protection systems are conventionally designed, per DNV-RP-B401, to
+              match the full structural design life of 20–40 years. Glass-fiber-reinforced-polymer (GFRP) composites have been shown, in at
+              least one peer-reviewed offshore topside life-cycle cost analysis, to reduce structural life-cycle cost by up to 26% over 50
+              years by eliminating most corrosion-related maintenance.
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>2.4 The gap this paper addresses</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              No identified source models a hybrid marine-layer-air and seawater-pumped cooling architecture in which air handles baseline load
+              and water covers only the residual gap. Separately, while a body of physical evidence (notably Melchers' bi-modal corrosion model
+              and intermittent-wetting studies of carbon steel) demonstrates that corrosion behavior under intermittent or cyclical wetting
+              differs meaningfully from continuous immersion, no published cost model expresses corrosion-related operating expenditure as an
+              explicit function of pumping or wetting duty cycle. This paper's contribution is twofold: (1) a quantified hybrid cooling
+              duty-cycle model for this specific coastal microclimate, and (2) a first-pass, duty-cycle-scaled corrosion/maintenance cost model
+              that distinguishes fixed, site-driven structural protection from variable, design-dependent seawater-loop maintenance.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>3. Methodology and Data Sources</h2>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>3.1 Climate data</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Hourly air temperature, relative humidity, and dew point were obtained from the Open-Meteo historical reanalysis archive for a
+              San Francisco Bay coastal coordinate (approximately 37.79°N, 122.41°W) for the period January 1, 2022 through December 31, 2024
+              (26,304 hourly observations).
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>3.2 Seawater temperature data</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Hourly Bay water temperature was obtained from NOAA CO-OPS station 9414290 (San Francisco). Data were available from January
+              2022 through mid-February 2024 (approximately 2.02 years after removing gaps), which constitutes the overlap period used for all
+              combined air/water calculations. This is a data limitation: standard climate normals use 30-year records, and the
+              water-temperature sensor gap after February 2024 should be revisited with updated data before any engineering design is
+              finalized.
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>3.3 Thermal feasibility criteria</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 10px" }}>
+              Two cooling architectures were evaluated against ASHRAE 2021 Thermal Guidelines for Data Processing Environments, Class A2:
+            </p>
+            <ul style={{ margin: "0 0 16px", padding: "0 0 0 18px", fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
+              <li>
+                Direct free-air cooling (outside air supplied directly to IT intake): evaluated against both the ASHRAE "recommended" envelope
+                (18–27°C dry bulb, 5.5–15°C dew point, ≤60% relative humidity) and the wider "allowable A2" envelope (10–35°C dry bulb, −12 to
+                21°C dew point, 8–80% relative humidity).
+              </li>
+              <li>
+                Indirect economizer cooling (outside air or seawater cools a closed loop via heat exchanger, never contacting IT equipment
+                directly): evaluated using dry-bulb temperature only, since humidity does not affect a closed loop. Feasibility is defined as
+                ambient temperature (air or water) falling at or below the target chilled-water supply temperature minus a specified
+                heat-exchanger approach temperature.
+              </li>
+            </ul>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              The indirect architecture was selected as the primary design basis for this study, both because it produced substantially more
+              favorable feasibility results and because it avoids introducing corrosive, salt-laden marine air directly into the IT environment
+              — a risk not present in the direct free-air configuration.
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>3.4 Reference facility scale</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              All energy and cost estimates are referenced to an illustrative 1 MW critical IT load facility, using a U.S. average industrial
+              electricity price of $0.125/kWh and 8,760 annual operating hours. This scale was chosen for tractability and rough comparability
+              with the lower end of Nautilus's reported Stockton capacity range; it does not represent a specific proposed facility size.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>4. Climate Feasibility Model and Results</h2>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>4.1 Direct free-air cooling</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Direct free-air cooling, evaluated against the full ASHRAE Class A2 envelope, performed poorly: only 7.6% of hours annually fell
+              within the "recommended" envelope, and 40.0% within the wider "allowable" envelope. Average outside air temperature over the
+              study period was a mild 13.5°C, but average relative humidity was 78.7%, driven by the region's persistent marine-layer fog.
+              Temperature is rarely the limiting factor in this climate; humidity is. This result argues against a direct free-air architecture
+              for this site and motivated the shift to an indirect economizer model.
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>4.2 Indirect economizer: air and seawater compared</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Because an indirect loop is insensitive to humidity, feasibility improves substantially. At a 21°C target supply temperature,
+              outside air alone is below the required threshold (accounting for heat-exchanger approach) between 79.4% (5°C approach) and
+              91.4% (3°C approach) of annual hours.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              A counterintuitive finding emerged when Bay water temperature was incorporated: summer, not winter, is the weakest season for
+              this hybrid system. In the 18°C-supply/5°C-approach configuration, the fraction of hours where neither air nor seawater meets the
+              target reaches 99.9% in September. This occurs because immediate-coastal air temperature does not fall in summer the way the
+              marine-layer literature's emphasis on summer breeze intensity might suggest — that intensification is driven by the temperature
+              contrast pulling air toward the coast, not by the absolute coastal temperature itself becoming colder — and because Bay water
+              also warms somewhat in summer due to reduced tidal mixing and upwelling influence in the inner Bay. This finding should be
+              treated as a genuine result of the model rather than a confirmation of the initial hypothesis, and it materially affects the
+              recommended design point below.
+            </p>
+
+            <div style={{ fontSize: 12, fontStyle: "italic", color: PAPER.textMuted, margin: "0 0 8px" }}>
+              Table 1. Hybrid cooling duty cycle across three design points (percentage of annual hours), 2022–2024 overlap period.
+            </div>
+            <div style={{ overflowX: "auto", marginBottom: 20 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
+                    {["Design point", "Air alone sufficient", "Seawater fills gap", "Neither (needs mechanical backup)"].map((h) => (
+                      <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: PAPER.textPrimary, fontWeight: 600 }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["18°C supply / 5°C approach", "48.8%", "3.4%", "47.8%"],
+                    ["21°C supply / 5°C approach", "79.4%", "5.1%", "15.5%"],
+                    ["21°C supply / 3°C approach (recommended)", "91.4%", "6.0%", "2.6%"],
+                  ].map((row) => (
+                    <tr key={row[0]} style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
+                      {row.map((cell, i) => (
+                        <td key={i} style={{ padding: "8px 10px", color: i === 0 ? PAPER.textPrimary : PAPER.textMuted }}>
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              The 21°C supply / 3°C approach configuration is recommended as the primary design point for this study. A 21°C chilled-water
+              supply is compatible with ASHRAE Class A2-rated servers' allowable intake range, and a 3°C approach temperature, while tighter
+              (and therefore requiring a larger or more effective heat exchanger) than the 5°C case, is achievable with well-designed
+              dry-cooler or plate heat-exchanger equipment. This configuration reduces the fraction of hours requiring conventional mechanical
+              chiller backup to 2.6% annually, concentrated in the summer months.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>5. Energy and Cost Model</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Annual cooling-related energy overhead was estimated by weighting three published or industry-benchmark PUE-overhead figures by
+              the duty-cycle fractions in Table 1: an air-side economizer overhead of 8% (consistent with Prineville-class facilities), a
+              water-side/seawater economizer overhead of 4% (pump energy only, no compressor), and a conventional mechanical chiller overhead
+              of 55% (mid-range PUE of approximately 1.55, used as the baseline comparator).
+            </p>
+
+            <div style={{ fontSize: 12, fontStyle: "italic", color: PAPER.textMuted, margin: "0 0 8px" }}>
+              Table 2. Estimated annual cooling energy cost, 1 MW reference facility, at $0.125/kWh.
+            </div>
+            <div style={{ overflowX: "auto", marginBottom: 20 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
+                    {["Design point", "Effective PUE", "Annual cooling cost", "Savings vs. mechanical-only"].map((h) => (
+                      <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: PAPER.textPrimary, fontWeight: 600 }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["18°C supply / 5°C approach", "~1.30", "$332,000", "45%"],
+                    ["21°C supply / 5°C approach", "~1.15", "$165,000", "73%"],
+                    ["21°C supply / 3°C approach (recommended)", "~1.09", "$98,000", "84%"],
+                  ].map((row) => (
+                    <tr key={row[0]} style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
+                      {row.map((cell, i) => (
+                        <td key={i} style={{ padding: "8px 10px", color: i === 0 ? PAPER.textPrimary : PAPER.textMuted }}>
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              For the recommended design, the seawater loop itself was sized using standard heat-transfer relations for the 1 MW reference
+              load at a 10°C design delta-T, yielding a required flow of approximately 380 GPM and a pump power draw of approximately 3.35 kW
+              at an assumed 10 m pumping head and 70% pump efficiency. Because the pump operates only during the 6.0% of hours when seawater
+              is required, estimated annual pump energy cost is approximately $125, versus approximately $3,670 if the same pump ran
+              continuously as in a water-only design. This order-of-magnitude comparison, not the absolute dollar figures (which depend on
+              real equipment selection), is the paper's central energy claim: duty-cycle reduction, not seawater cooling itself, is the source
+              of the efficiency gain relative to existing water-only facilities.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              These figures are illustrative engineering estimates based on published PUE benchmarks and standard heat-transfer equations, not
+              a vendor quotation or first-principles thermal simulation, and should be treated as directional rather than precise.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>6. Structural and Corrosion Cost Model</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              A key methodological distinction, informed by offshore engineering literature, is that a platform's structural legs are wetted by
+              tidal and wave action regardless of whether the cooling system's pump is operating. Splash-zone corrosion protection for the
+              structure is therefore a fixed, site-driven cost, not a lever controlled by the hybrid cooling design. The seawater intake,
+              piping, pump, and heat-exchanger surfaces, by contrast, are wetted in proportion to actual water flow and are the appropriate
+              locus for a duty-cycle-dependent maintenance model.
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>6.1 Fixed structural splash-zone protection</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              For an illustrative four-legged platform substructure (0.5 m leg diameter, 2.0 m splash-zone height consistent with San Francisco
+              Bay's tidal range), estimated splash-zone surface area totals approximately 12.6 m². Applying offshore-industry per-area cost
+              benchmarks (inflation-adjusted to current dollars) yields an estimated capital cost of approximately $13,000–$13,200 for metallic
+              (copper-nickel) sheathing, or approximately $1,200 for a conventional coating system alone (before adding the steel cost of the
+              12 mm sacrificial corrosion allowance typically required alongside coatings, per offshore design guidance). This cost is
+              materially independent of the cooling architecture and should not be counted toward the hybrid design's savings claim; it is
+              presented here for completeness of the structural cost picture. GFRP composite substitution, which eliminates recurring
+              coating/cathodic-protection maintenance, is noted as a promising but separately-justified structural choice, supported by a 2026
+              peer-reviewed offshore topside life-cycle analysis reporting up to 26% life-cycle cost reduction over 50 years.
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>6.2 Duty-cycle-dependent seawater loop maintenance</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 10px" }}>
+              For an illustrative $100,000 seawater loop equipment package (pump, piping, intake screen, heat exchanger) at the 1 MW reference
+              scale, a baseline continuous-duty maintenance rate of 10% of capital cost per year ($10,000/year) was assumed, consistent with
+              general marine equipment maintenance benchmarks for continuously wetted service. Two scaling models were applied to estimate
+              maintenance cost at reduced duty cycle:
+            </p>
+            <ul style={{ margin: "0 0 16px", padding: "0 0 0 18px", fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
+              <li>A linear model, in which maintenance cost scales directly with duty cycle fraction.</li>
+              <li>
+                A literature-informed "floor" model (cost = baseline × (0.30 + 0.70 × duty fraction)), reflecting evidence from Melchers'
+                bi-modal corrosion model and intermittent-wetting studies that even brief or infrequent wetting cycles initiate corrosion
+                processes disproportionate to exposure time, and that reduced immersion duration can also reduce cathodic protection
+                polarization effectiveness in the tidal/splash band.
+              </li>
+            </ul>
+
+            <div style={{ fontSize: 12, fontStyle: "italic", color: PAPER.textMuted, margin: "0 0 8px" }}>
+              Table 3. Estimated annual seawater-loop maintenance cost by design point and scaling model.
+            </div>
+            <div style={{ overflowX: "auto", marginBottom: 20 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
+                    {["Design point", "Water duty cycle", "Linear model", "Floor model"].map((h) => (
+                      <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: PAPER.textPrimary, fontWeight: 600 }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["18°C supply / 5°C approach", "3.4%", "$340", "$3,238"],
+                    ["21°C supply / 5°C approach", "5.1%", "$510", "$3,357"],
+                    ["21°C supply / 3°C approach (recommended)", "6.0%", "$600", "$3,420"],
+                    ["Continuous / water-only baseline (Nautilus-style)", "100%", "$10,000", "$10,000"],
+                  ].map((row) => (
+                    <tr key={row[0]} style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
+                      {row.map((cell, i) => (
+                        <td key={i} style={{ padding: "8px 10px", color: i === 0 ? PAPER.textPrimary : PAPER.textMuted }}>
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              For the recommended design point, the linear model implies a 94% reduction in seawater-loop maintenance cost relative to a
+              continuously-pumped baseline; the more conservative, literature-informed floor model implies a 66% reduction ($6,580/year
+              savings). The floor model is recommended as the primary reported figure, as it more faithfully reflects the nonlinear,
+              threshold-sensitive nature of marine corrosion documented in the literature, while the linear model is retained as an
+              upper-bound sensitivity case.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              Both the equipment capital cost ($100,000) and the baseline maintenance rate (10% of capex/year) are illustrative assumptions
+              rather than vendor- or site-specific figures, and should be replaced with real quotations before this model is used for any
+              engineering or investment decision.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>7. Discussion, Assumptions, and Limitations</h2>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>7.1 Summary of findings</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              Taken together, the models developed in this paper suggest that a hybrid, indirect-economizer cooling architecture — using
+              marine-layer air for baseline cooling and pumped seawater only for the residual gap — is technically plausible for an
+              above-water Bay Area data center, and offers meaningful, quantifiable advantages over a continuously water-cooled design in both
+              energy cost (an estimated 84% reduction in cooling energy cost at the recommended design point relative to a mechanical-only
+              baseline) and seawater-loop maintenance cost (an estimated 66–94% reduction relative to continuous pumping, depending on the
+              corrosion scaling model applied).
+            </p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>7.2 Key assumptions requiring validation</h3>
+            <ul style={{ margin: "0 0 16px", padding: "0 0 0 18px", fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
+              <li>
+                Climate and water-temperature data are drawn from a single representative coordinate and a single NOAA tide station, not the
+                specific candidate site; a real site survey and longer climate record (ideally 30 years) would be needed before engineering
+                design.
+              </li>
+              <li>
+                Heat-exchanger approach temperatures (3–8°C) and target chilled-water supply temperatures (15–21°C) are engineering
+                assumptions, not vendor-specified equipment performance; actual values depend on selected heat-exchanger hardware.
+              </li>
+              <li>
+                PUE-overhead benchmarks for each cooling mode are drawn from published industry figures for comparable but not identical
+                systems, and are used as reasonable proxies rather than site-specific measurements.
+              </li>
+              <li>
+                The seawater-loop equipment cost and maintenance-rate assumptions underlying the corrosion model are illustrative; the
+                qualitative distinction between fixed structural cost and duty-cycle-dependent loop maintenance is more defensible than the
+                specific dollar figures.
+              </li>
+              <li>
+                The corrosion "floor model" functional form is a reasonable first approximation grounded in qualitative literature findings,
+                not a fitted or independently validated quantitative model; deriving or validating this function is itself a candidate area
+                for further research, potentially in collaboration with a corrosion engineering researcher.
+              </li>
+            </ul>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", color: PAPER.textPrimary }}>7.3 Regulatory context</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              The 2019 rejection of Nautilus's Alameda proposal centered on continuous, once-through thermal discharge and marine-life
+              entrainment risk. Because the hybrid design proposed here engages seawater pumping for an estimated 3–6% of annual hours rather
+              than continuously, it may present a substantially smaller environmental footprint on these specific dimensions — though this
+              claim would need to be substantiated through a proper environmental review process, including entrainment modeling at actual
+              (not averaged) flow rates and intake velocities, before it could be treated as a regulatory advantage rather than a hypothesis.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>8. Conclusion and Next Steps</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 16px" }}>
+              This paper has developed a quantified, data-grounded case for a hybrid marine-layer-air and seawater-pumped cooling architecture
+              for an above-water offshore data center in the San Francisco Bay Area, positioned relative to the existing Nautilus Data
+              Technologies precedent and grounded in offshore corrosion engineering literature not previously applied to this context. The
+              recommended design point — a 21°C chilled-water supply with a 3°C heat-exchanger approach — is estimated to meet cooling demand
+              from air alone 91.4% of annual hours, with seawater covering an additional 6.0%, at an estimated 84% reduction in cooling energy
+              cost and a 66–94% reduction in seawater-loop maintenance cost relative to continuously-pumped and mechanical-only baselines,
+              respectively.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
+              Recommended next steps are, in order: (1) validate the climate and water-temperature model against a longer historical record
+              and, if possible, site-specific measurements; (2) obtain real heat-exchanger and pump equipment specifications to replace the
+              illustrative approach-temperature and cost assumptions used here; (3) develop or locate a more rigorously derived duty-cycle
+              corrosion cost function, ideally in consultation with a corrosion or marine engineering researcher; and (4) engage with
+              researchers in data center energy modeling, coastal or marine structural engineering, and HVAC free-cooling systems to review
+              this feasibility model before any further engineering design or site-specific proposal is developed.
+            </p>
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>References</h2>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: PAPER.textMuted, fontStyle: "italic", margin: 0 }}>
+              Full citation list to be compiled in the required academic format — ASHRAE 2021 Thermal Guidelines for Data Processing
+              Environments; Hanson & Hurst, OTC-1042 (1969); NACE International IMPACT Study (2016); DNV-RP-B401; Melchers, long-term marine
+              corrosion modeling (2022, 2025); relevant Nautilus Data Technologies public materials and Alameda Point environmental review
+              documents; Open-Meteo historical weather archive; NOAA CO-OPS station 9414290; and other sources identified during the
+              literature review phase of this project.
             </p>
           </div>
         </div>
