@@ -2061,15 +2061,15 @@ export default function App() {
             <div style={{ fontSize: 12, color: PAPER.accent, fontFamily: FONT_MONO, marginBottom: 6 }}>SolidWorks · ANSYS Icepak/Mechanical · 2025</div>
             <h1 style={{ margin: "0 0 6px", fontSize: 26, fontWeight: 700 }}>Thermal Analysis of BGA Semiconductor Packages</h1>
             <div style={{ fontSize: 14, color: PAPER.textMuted, marginBottom: 28 }}>
-              Two independent thermal-structural analyses on BGA package assemblies — modeled in SolidWorks, analyzed in ANSYS Icepak and ANSYS
-              Mechanical — scaled to match the power dissipation and application context of each package.
+              Thermal-structural analyses on BGA package assemblies modeled in SolidWorks, analyzed in ANSYS Icepak and ANSYS
+              Mechanical scaled to match the power dissipation and application context of each package.
             </div>
 
             {/* ============ PROJECT 1 ============ */}
-            <h2 style={{ fontSize: 19, fontWeight: 700, margin: "0 0 4px", color: PAPER.textPrimary }}>Project 1 — Low-Power BGA Chip Package (0.3W, Natural Convection)</h2>
+            <h2 style={{ fontSize: 19, fontWeight: 700, margin: "0 0 4px", color: PAPER.textPrimary }}>0.3 W Power BGA Chip Package (Natural Convection)</h2>
             <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 20px" }}>
-              Analyzes the steady-state and transient thermal behavior of a low-power BGA chip package dissipating 0.3W under natural convection —
-              representative of memory ICs, microcontrollers, and other low-power ICs in consumer and embedded electronics. Modeled in SolidWorks
+              Analyzes the steady state and transient thermal behavior of a low power BGA chip package dissipating 0.3W under natural convection,
+              representative  low-power ICs in consumer and embedded electronics. Modeled in SolidWorks
               with 69 solid bodies, analyzed in ANSYS Icepak coupled with ANSYS Mechanical for structural response.
             </p>
 
@@ -2085,7 +2085,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {[
-                    ["Silicon Die", "Silicon (k ≈ 150 W/m·K)", "Primary heat source — junction where power is dissipated"],
+                    ["Silicon Die", "Silicon (k ≈ 150 W/m·K)", "Primary heat source is junction where power is dissipated"],
                     ["Mold Compound", "Epoxy mold compound (k ≈ 0.7 W/m·K)", "Encapsulates and protects the die; primary thermal barrier"],
                     ["Package Substrate", "FR4/BT resin (k ≈ 0.3, in-plane ≈ 0.6 W/m·K)", "Electrical routing between die and solder balls; lateral heat spreading"],
                     ["Solder Balls", "SAC305 solder (k ≈ 57 W/m·K)", "Mechanical/electrical connection to PCB; conductive heat path"],
@@ -2117,7 +2117,7 @@ export default function App() {
               </div>
             </div>
 
-            <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Steady-State Thermal Results</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Steady State Thermal Results</h3>
             <div style={{ overflowX: "auto", marginBottom: 20 }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
@@ -2146,7 +2146,7 @@ export default function App() {
               </table>
             </div>
 
-            <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Structural Response — Thermal Stress & Warpage</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Structural Response: Thermal Stress & Warpage</h3>
             <div style={{ overflowX: "auto", marginBottom: 20 }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
@@ -2159,9 +2159,9 @@ export default function App() {
                 <tbody>
                   {[
                     ["Solder ball von Mises stress (max)", "865 MPa", "Located at outermost corner balls"],
-                    ["Package warpage", "15.5 µm", "Concave — die side warmer, substrate cooler"],
-                    ["CTE — solder (SAC305)", "21 ppm/°C", "Relative expansion driver"],
-                    ["CTE — substrate (BT resin)", "17 ppm/°C", "CTE mismatch = 4 ppm/°C"],
+                    ["Package warpage", "15.5 µm", "Concave. Die side warmer, substrate cooler"],
+                    ["CTE of solder (SAC305)", "21 ppm/°C", "Relative expansion driver"],
+                    ["CTE of substrate (BT resin)", "17 ppm/°C", "CTE mismatch = 4 ppm/°C"],
                     ["Primary failure mode", "Solder fatigue (CTE mismatch)", "Crack initiation at ball corners"],
                   ].map((row) => (
                     <tr key={row[0]} style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
@@ -2183,11 +2183,11 @@ export default function App() {
             </ul>
 
             {/* ============ PROJECT 2 ============ */}
-            <h2 style={{ fontSize: 19, fontWeight: 700, margin: "0 0 4px", color: PAPER.textPrimary }}>Project 2 — High-Performance CPU Package (35W, Forced Convection)</h2>
+            <h2 style={{ fontSize: 19, fontWeight: 700, margin: "0 0 4px", color: PAPER.textPrimary }}>35W High-Performance CPU Package (Forced Convection)</h2>
             <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 20px" }}>
-              Analyzes a high-performance CPU package (BGA format) dissipating 35W — a TDP representative of server-class, AI accelerator, or
-              high-performance computing processors. Natural convection is entirely insufficient at this power level; the analysis was conducted
-              under forced convection, simulating a data-center server bay or workstation heatsink-fan assembly. Modeled with 295 solid bodies,
+              Analyzes a high performance CPU package (BGA format) dissipating 35W, a TDP representative of
+              high-performance computing processors. Natural convection is entirely insufficient at this power level. The analysis was conducted
+              under forced convection, simulating a data center server bay or workstation heatsink fan assembly. Modeled with 295 solid bodies,
               reflecting a denser solder ball array and an integrated heat spreader (IHS) layer.
             </p>
 
@@ -2203,12 +2203,12 @@ export default function App() {
                 </thead>
                 <tbody>
                   {[
-                    ["Silicon Die (CPU)", "Silicon (k ≈ 150 W/m·K)", "Primary heat source — 35W junction dissipation across multiple cores"],
-                    ["TIM1", "Indium / high-k TIM (k ≈ 50–80 W/m·K)", "Fills microscopic gaps between die and IHS; critical for low resistance"],
+                    ["Silicon Die (CPU)", "Silicon (k ≈ 150 W/m·K)", "Primary heat source is 35W junction dissipation across multiple cores"],
+                    ["TIM1", "Indium / high-k TIM (k ≈ 50–80 W/m·K)", "Fills microscopic gaps between die and IHS, critical for low resistance"],
                     ["Integrated Heat Spreader (IHS)", "Copper (k ≈ 385 W/m·K)", "Spreads heat from small die to larger IHS footprint; protects die"],
-                    ["Package Substrate", "Multilayer organic (k ≈ 0.5 W/m·K)", "High-density electrical routing; lateral heat spreading layer"],
+                    ["Package Substrate", "Multilayer organic (k ≈ 0.5 W/m·K)", "High-density electrical routing, lateral heat spreading layer"],
                     ["Solder Ball Array (high-density)", "SAC305 (k ≈ 57 W/m·K)", "High-density BGA array for electrical I/O and ground heat path"],
-                    ["PCB / Server Board", "High-Tg FR4 (k ≈ 0.5 W/m·K)", "Structural base and secondary heat spreader; supports forced convection"],
+                    ["PCB / Server Board", "High-Tg FR4 (k ≈ 0.5 W/m·K)", "Structural base and secondary heat spreader, supports forced convection"],
                   ].map((row) => (
                     <tr key={row[0]} style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
                       {row.map((cell, i) => (
@@ -2223,7 +2223,7 @@ export default function App() {
             <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Boundary Conditions — Forced Convection</h3>
             <ul style={{ margin: "0 0 20px", padding: "0 0 0 18px", fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
               <li>35W uniform volumetric heat generation applied to the die, distributed across the full footprint</li>
-              <li>Ambient temperature: 25°C (298 K) — representative of data-center inlet air</li>
+              <li>Ambient temperature: 25°C (298 K) representative of data-center inlet air</li>
               <li>IHS top surface (primary cooling surface): h = 1,500–5,000 W/m²·K, simulating a copper heatsink with 60 CFM fan airflow</li>
               <li>PCB bottom surface: h = 100–300 W/m²·K, representing chassis-level airflow</li>
               <li>All other exposed surfaces: natural convection, h = 5–10 W/m²·K</li>
@@ -2272,8 +2272,8 @@ export default function App() {
             <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Transient Thermal Analysis</h3>
             <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 20px" }}>
               Cold start (25°C) to steady state under continuous 35W operation with forced convection from t = 0: die reaches 45°C by t=10s (rapid
-              initial rise from the die's low thermal mass); IHS reaches 40°C by t=30s as the copper begins absorbing and spreading heat; the
-              system approaches 95% of steady state by t=90s; die junction stabilizes at 80.2°C by t=159s. Thermal time constant (die to IHS):
+              initial rise from the die's low thermal mass). IHS reaches 40°C by t=30s as the copper begins absorbing and spreading heat. The
+              system approaches 95% of steady state by t=90s. Die junction stabilizes at 80.2°C by t=159s. Thermal time constant (die to IHS):
               approximately 8–12 seconds.
             </p>
 
@@ -2289,11 +2289,11 @@ export default function App() {
                 </thead>
                 <tbody>
                   {[
-                    ["Solder ball von Mises stress (max)", "865 MPa", "Corner balls — highest CTE mismatch location"],
-                    ["Package warpage", "15.5 µm", "Comparable to 0.3W case; IHS distributes stress"],
+                    ["Solder ball von Mises stress (max)", "865 MPa", "Corner balls had highest CTE mismatch location"],
+                    ["Package warpage", "15.5 µm", "Comparable to 0.3W case, IHS distributes stress"],
                     ["Die stress (max)", "~120 MPa", "Tensile stress at die corners under cooling"],
                     ["IHS flatness deviation", "<5 µm", "Copper IHS high stiffness limits warpage"],
-                    ["CTE — copper IHS", "17 ppm/°C", "Close match to substrate — reduces warpage"],
+                    ["CTE — copper IHS", "17 ppm/°C", "Close match to substrate, reduces warpage"],
                     ["Primary failure risk", "TIM1 pump-out / solder fatigue", "At 35W cycling, TIM1 degradation accelerates"],
                   ].map((row) => (
                     <tr key={row[0]} style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
@@ -2308,9 +2308,9 @@ export default function App() {
 
             <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Design Observations & Corrective Actions</h3>
             <ul style={{ margin: "0 0 32px", padding: "0 0 0 18px", fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
-              <li>The 55.2°C junction-to-ambient rise is within safe range for modern CPUs (T_junction max typically 100–105°C), a ≈20–25°C margin.</li>
+              <li>The 55.2°C junction to ambient rise is within safe range for modern CPUs (T_junction max typically 100–105°C), a ≈20–25°C margin.</li>
               <li>The copper IHS is the most critical thermal management component, spreading concentrated die heat flux to an area forced convection can act on.</li>
-              <li>TIM1 resistance contributes ≈6°C of the die-to-IHS drop; indium-based TIMs (k ≈ 80 W/m·K) significantly outperform standard polymer TIMs (k ≈ 5–8 W/m·K).</li>
+              <li>TIM1 resistance contributes ≈6°C of the die to IHS drop, indium-based TIMs (k ≈ 80 W/m·K) significantly outperform standard polymer TIMs (k ≈ 5–8 W/m·K).</li>
               <li>Under power cycling, TIM1 pump-out is the primary long-term reliability risk as repeated expansion differentials progressively displace it from the interface.</li>
               <li><strong style={{ color: PAPER.textPrimary }}>Proposed fixes:</strong> (1) indium or liquid-metal TIM1 to cut die-to-IHS delta-T from 6°C to &lt;2°C; (2) a frame seal around TIM1 to prevent pump-out; (3) substrate CTE engineering toward 19–20 ppm/°C to pull solder stress below an 800 MPa fatigue threshold.</li>
             </ul>
@@ -2361,7 +2361,7 @@ export default function App() {
               <div style={{ fontSize: 10, color: PAPER.accent, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Key Insight</div>
               <div style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
                 Despite a 117x increase in power dissipation (0.3W to 35W), the CPU package achieves a <em>lower</em> junction-temperature rise
-                (+55.2°C vs. +65°C above ambient) — demonstrating that forced convection with a copper IHS and high-k TIM fundamentally changes
+                (+55.2°C vs. +65°C above ambient) demonstrating that forced convection with a copper IHS and high-k TIM fundamentally changes
                 the thermal management equation at high power levels. The identical solder ball stress (865 MPa) in both cases reflects the same
                 underlying CTE mismatch physics, independent of power level, and confirms that solder joint reliability is driven by temperature
                 cycling range rather than absolute peak temperature.
