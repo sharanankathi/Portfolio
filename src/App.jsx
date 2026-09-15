@@ -417,6 +417,7 @@ export default function App() {
   const mountRef = useRef(null);
   const dcMountRef = useRef(null);
   const [dcLoading, setDcLoading] = useState(true);
+  const [dcLoadError, setDcLoadError] = useState(null);
   const stateRef = useRef({ view: "home", selectedId: null });
   const [view, setView] = useState("home");
   const [selectedId, setSelectedId] = useState(null);
@@ -1152,6 +1153,7 @@ export default function App() {
     if (!mount) return;
 
     setDcLoading(true);
+    setDcLoadError(null);
 
     const scene = new THREE.Scene();
     scene.background = null;
@@ -1201,59 +1203,72 @@ export default function App() {
     loader.load(
       "/models/data-center.glb",
       (gltf) => {
-        const model = gltf.scene;
-        model.traverse((child) => {
-          if (!child.isMesh || !child.material) return;
-          const c = child.material.color;
-          const isWater = c && c.b > 0.6 && c.r < 0.3;
+        try {
+          const model = gltf.scene;
+          let meshCount = 0;
+          model.traverse((child) => {
+            if (!child.isMesh || !child.material) return;
+            meshCount++;
+            const c = child.material.color;
+            const isWater = c && c.b > 0.6 && c.r < 0.3;
 
-          if (isWater) {
-            child.material = new THREE.MeshPhysicalMaterial({
-              color: 0x2a7fc9,
-              transparent: true,
-              opacity: 0.82,
-              roughness: 0.25,
-              metalness: 0.1,
-              clearcoat: 0.4,
-            });
-          } else {
-            // Equipment + cliff mesh — apply a stylized thermal gradient (cool intake blue
-            // -> warm discharge orange) across the platform equipment only, based on each
-            // vertex's Y position; the cliff (x < -9) stays a neutral stone gray.
-            const geo = child.geometry;
-            const posAttr = geo.attributes.position;
-            const colors = new Float32Array(posAttr.count * 3);
-            const cliffColor = new THREE.Color(0xc9cdd4);
-            const coolColor = new THREE.Color(0x5fb8ff);
-            const warmColor = new THREE.Color(0xff9a4d);
-            for (let i = 0; i < posAttr.count; i++) {
-              const x = posAttr.getX(i);
-              const y = posAttr.getY(i);
-              let col;
-              if (x < -9) {
-                col = cliffColor;
-              } else {
-                const t = THREE.MathUtils.clamp((8 - y) / 8, 0, 1);
-                col = coolColor.clone().lerp(warmColor, t);
+            if (isWater) {
+              child.material = new THREE.MeshPhysicalMaterial({
+                color: 0x2a7fc9,
+                transparent: true,
+                opacity: 0.82,
+                roughness: 0.25,
+                metalness: 0.1,
+                clearcoat: 0.4,
+              });
+            } else {
+              // Equipment + cliff mesh — apply a stylized thermal gradient (cool intake blue
+              // -> warm discharge orange) across the platform equipment only, based on each
+              // vertex's Y position; the cliff (x < -9) stays a neutral stone gray.
+              const geo = child.geometry;
+              const posAttr = geo.attributes.position;
+              const colors = new Float32Array(posAttr.count * 3);
+              const cliffColor = new THREE.Color(0xc9cdd4);
+              const coolColor = new THREE.Color(0x5fb8ff);
+              const warmColor = new THREE.Color(0xff9a4d);
+              for (let i = 0; i < posAttr.count; i++) {
+                const x = posAttr.getX(i);
+                const y = posAttr.getY(i);
+                let col;
+                if (x < -9) {
+                  col = cliffColor;
+                } else {
+                  const t = THREE.MathUtils.clamp((8 - y) / 8, 0, 1);
+                  col = coolColor.clone().lerp(warmColor, t);
+                }
+                colors[i * 3] = col.r;
+                colors[i * 3 + 1] = col.g;
+                colors[i * 3 + 2] = col.b;
               }
-              colors[i * 3] = col.r;
-              colors[i * 3 + 1] = col.g;
-              colors[i * 3 + 2] = col.b;
+              geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+              child.material = new THREE.MeshStandardMaterial({
+                vertexColors: true,
+                roughness: 0.55,
+                metalness: 0.1,
+              });
             }
-            geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-            child.material = new THREE.MeshStandardMaterial({
-              vertexColors: true,
-              roughness: 0.55,
-              metalness: 0.1,
-            });
+          });
+          dcRoot.add(model);
+          console.log(`[data-center] Loaded OK — ${meshCount} meshes`);
+          if (meshCount === 0) {
+            setDcLoadError("Model file loaded but contained 0 meshes — the GLB may be empty or corrupted.");
           }
-        });
-        dcRoot.add(model);
-        setDcLoading(false);
+          setDcLoading(false);
+        } catch (e) {
+          console.error("[data-center] error while processing model:", e);
+          setDcLoadError(`Error processing model: ${e.message}`);
+          setDcLoading(false);
+        }
       },
       undefined,
       (err) => {
         console.error("[data-center] failed to load:", err);
+        setDcLoadError(`Failed to load /models/data-center.glb: ${err?.message || err}`);
         setDcLoading(false);
       }
     );
@@ -1799,9 +1814,27 @@ export default function App() {
               }}
             >
               <div ref={dcMountRef} style={{ width: "100%", height: "100%", touchAction: "none" }} />
-              {dcLoading && (
+              {dcLoading && !dcLoadError && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: PAPER.textMuted, fontSize: 13 }}>
                   Loading model…
+                </div>
+              )}
+              {dcLoadError && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    background: "rgba(200,50,50,0.15)",
+                    border: "1px solid rgba(255,100,100,0.4)",
+                    color: "#ffb3b3",
+                    padding: "10px 14px",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                >
+                  {dcLoadError}
                 </div>
               )}
             </div>
