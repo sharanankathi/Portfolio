@@ -415,6 +415,8 @@ function makeEnvTexture() {
 
 export default function App() {
   const mountRef = useRef(null);
+  const dcMountRef = useRef(null);
+  const [dcLoading, setDcLoading] = useState(true);
   const stateRef = useRef({ view: "home", selectedId: null });
   const [view, setView] = useState("home");
   const [selectedId, setSelectedId] = useState(null);
@@ -1143,6 +1145,252 @@ export default function App() {
     };
   }, []);
 
+  // --- Data center CAD model viewer (separate scene, mounted only on the Working On page) ---
+  useEffect(() => {
+    if (view !== "working") return;
+    const mount = dcMountRef.current;
+    if (!mount) return;
+
+    setDcLoading(true);
+
+    const scene = new THREE.Scene();
+    scene.background = null;
+
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    mount.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.7;
+    controls.minDistance = 8;
+    controls.maxDistance = 45;
+    controls.addEventListener("start", () => (controls.autoRotate = false));
+
+    const hemi = new THREE.HemisphereLight(0xdfe9ff, 0x223344, 1.1);
+    scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.3);
+    dir.position.set(8, 14, 8);
+    scene.add(dir);
+    const fill = new THREE.DirectionalLight(0x4fa8ff, 0.4);
+    fill.position.set(-6, 4, -6);
+    scene.add(fill);
+
+    const dcRoot = new THREE.Group();
+    scene.add(dcRoot);
+
+    // Approximate world-space anchors for callouts, derived from inspecting the model's
+    // geometry (the source file has no per-part names, so these are hand-placed based on
+    // the actual bounding regions of each visible cluster).
+    const DC_ANCHORS = {
+      racks: { pos: new THREE.Vector3(-6, 2.4, 7.2), label: "Server Racks (Free-Air Cooled)" },
+      pipes: { pos: new THREE.Vector3(0.5, 1.8, 7), label: "Seawater Pipes" },
+      legs: { pos: new THREE.Vector3(-4, -0.6, 2.5), label: "Support Legs" },
+      bridge: { pos: new THREE.Vector3(-9, 2.6, 3.5), label: "Pedestrian Bridge" },
+      cliff: { pos: new THREE.Vector3(-13.5, 4.5, 0), label: "Coastal Cliff" },
+      platform: { pos: new THREE.Vector3(-3, 0.3, 3.5), label: "Above-Water Platform" },
+    };
+
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+    let mixerTargets = [];
+
+    loader.load(
+      "/models/data-center.glb",
+      (gltf) => {
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if (!child.isMesh || !child.material) return;
+          const c = child.material.color;
+          const isWater = c && c.b > 0.6 && c.r < 0.3;
+
+          if (isWater) {
+            child.material = new THREE.MeshPhysicalMaterial({
+              color: 0x2a7fc9,
+              transparent: true,
+              opacity: 0.82,
+              roughness: 0.25,
+              metalness: 0.1,
+              clearcoat: 0.4,
+            });
+          } else {
+            // Equipment + cliff mesh — apply a stylized thermal gradient (cool intake blue
+            // -> warm discharge orange) across the platform equipment only, based on each
+            // vertex's Y position; the cliff (x < -9) stays a neutral stone gray.
+            const geo = child.geometry;
+            const posAttr = geo.attributes.position;
+            const colors = new Float32Array(posAttr.count * 3);
+            const cliffColor = new THREE.Color(0xc9cdd4);
+            const coolColor = new THREE.Color(0x5fb8ff);
+            const warmColor = new THREE.Color(0xff9a4d);
+            for (let i = 0; i < posAttr.count; i++) {
+              const x = posAttr.getX(i);
+              const y = posAttr.getY(i);
+              let col;
+              if (x < -9) {
+                col = cliffColor;
+              } else {
+                const t = THREE.MathUtils.clamp((8 - y) / 8, 0, 1);
+                col = coolColor.clone().lerp(warmColor, t);
+              }
+              colors[i * 3] = col.r;
+              colors[i * 3 + 1] = col.g;
+              colors[i * 3 + 2] = col.b;
+            }
+            geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+            child.material = new THREE.MeshStandardMaterial({
+              vertexColors: true,
+              roughness: 0.55,
+              metalness: 0.1,
+            });
+          }
+        });
+        dcRoot.add(model);
+        setDcLoading(false);
+      },
+      undefined,
+      (err) => {
+        console.error("[data-center] failed to load:", err);
+        setDcLoading(false);
+      }
+    );
+
+    camera.position.set(6, 10, 22);
+    controls.target.set(-5, 2, 4);
+    controls.update();
+
+    // Leader-line label overlay, same technique as the car
+    const svgNS = "http://www.w3.org/2000/svg";
+    const overlaySvg = document.createElementNS(svgNS, "svg");
+    overlaySvg.setAttribute("style", "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;");
+    mount.appendChild(overlaySvg);
+    const labelEls = {};
+    Object.entries(DC_ANCHORS).forEach(([key, { label }]) => {
+      const g = document.createElementNS(svgNS, "g");
+      const line = document.createElementNS(svgNS, "line");
+      line.setAttribute("stroke", "#4FA8FF");
+      line.setAttribute("stroke-width", "1.2");
+      g.appendChild(line);
+      const dot = document.createElementNS(svgNS, "circle");
+      dot.setAttribute("r", "3");
+      dot.setAttribute("fill", "#4FA8FF");
+      g.appendChild(dot);
+      const rect = document.createElementNS(svgNS, "rect");
+      rect.setAttribute("rx", "4");
+      rect.setAttribute("fill", "rgba(8,11,18,0.88)");
+      rect.setAttribute("stroke", "rgba(79,168,255,0.45)");
+      g.appendChild(rect);
+      const text = document.createElementNS(svgNS, "text");
+      text.setAttribute("fill", "#F2F5FA");
+      text.setAttribute("font-size", "11");
+      text.setAttribute("font-family", FONT_SANS);
+      text.setAttribute("dominant-baseline", "middle");
+      text.textContent = label;
+      g.appendChild(text);
+      overlaySvg.appendChild(g);
+      labelEls[key] = { g, line, dot, rect, text };
+    });
+
+    // Stylized airflow indicator: small dots traveling from the intake/rack side toward
+    // the water discharge side, color-shifting from cool to warm along the way.
+    const flowCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-7, 2.8, 7.5),
+      new THREE.Vector3(-5, 2, 5.5),
+      new THREE.Vector3(-2, 1.2, 3),
+      new THREE.Vector3(0.5, 0.4, 1),
+    ]);
+    const flowDots = [];
+    const flowGeo = new THREE.SphereGeometry(0.12, 8, 8);
+    for (let i = 0; i < 6; i++) {
+      const mat = new THREE.MeshBasicMaterial({ color: 0x5fb8ff, transparent: true, opacity: 0.9 });
+      const dot = new THREE.Mesh(flowGeo, mat);
+      dcRoot.add(dot);
+      flowDots.push({ mesh: dot, offset: i / 6 });
+    }
+
+    function resize() {
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      if (!w || !h) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(mount);
+
+    let rafId;
+    const clock = new THREE.Clock();
+    function animate() {
+      rafId = requestAnimationFrame(animate);
+      controls.update();
+      const t = clock.getElapsedTime();
+
+      const cool = new THREE.Color(0x5fb8ff);
+      const warm = new THREE.Color(0xff9a4d);
+      flowDots.forEach(({ mesh, offset }) => {
+        const tt = (t * 0.12 + offset) % 1;
+        flowCurve.getPointAt(tt, mesh.position);
+        mesh.material.color.copy(cool).lerp(warm, tt);
+      });
+
+      const mw = mount.clientWidth;
+      const mh = mount.clientHeight;
+      Object.entries(DC_ANCHORS).forEach(([key, { pos }]) => {
+        const el = labelEls[key];
+        if (!el || !mw || !mh) return;
+        const p = pos.clone().project(camera);
+        if (p.z > 1) {
+          el.g.style.opacity = "0";
+          return;
+        }
+        const sx = (p.x * 0.5 + 0.5) * mw;
+        const sy = (-p.y * 0.5 + 0.5) * mh;
+        const boxX = sx + 40;
+        const boxY = sy - 10;
+        const label = DC_ANCHORS[key].label;
+        const boxW = Math.max(60, label.length * 5.6 + 14);
+        const boxH = 20;
+        el.line.setAttribute("x1", sx);
+        el.line.setAttribute("y1", sy);
+        el.line.setAttribute("x2", boxX);
+        el.line.setAttribute("y2", boxY + boxH / 2);
+        el.dot.setAttribute("cx", sx);
+        el.dot.setAttribute("cy", sy);
+        el.rect.setAttribute("x", boxX);
+        el.rect.setAttribute("y", boxY);
+        el.rect.setAttribute("width", boxW);
+        el.rect.setAttribute("height", boxH);
+        el.text.setAttribute("x", boxX + 7);
+        el.text.setAttribute("y", boxY + boxH / 2 + 1);
+        el.g.style.opacity = sx >= 0 && sx <= mw && sy >= 0 && sy <= mh ? "1" : "0";
+      });
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      ro.disconnect();
+      controls.dispose();
+      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
+      if (mount.contains(overlaySvg)) mount.removeChild(overlaySvg);
+      scene.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+          else obj.material.dispose();
+        }
+      });
+      renderer.dispose();
+    };
+  }, [view]);
+
   const isHome = view === "home";
   const isAbout = view === "about";
   const isFreelance = view === "freelance";
@@ -1536,8 +1784,34 @@ export default function App() {
               Hybrid marine-layer / seawater cooling for coastal data centers
             </div>
 
+            <div style={{ fontSize: 11, color: PAPER.textMuted, marginBottom: 8, letterSpacing: "0.02em", textTransform: "uppercase" }}>
+              Interactive CAD model — drag to rotate, scroll to zoom
+            </div>
+            <div
+              style={{
+                position: "relative",
+                borderRadius: 12,
+                overflow: "hidden",
+                border: `1px solid ${PAPER.panelBorder}`,
+                marginBottom: 10,
+                height: 420,
+                background: "rgba(255,255,255,0.02)",
+              }}
+            >
+              <div ref={dcMountRef} style={{ width: "100%", height: "100%", touchAction: "none" }} />
+              {dcLoading && (
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: PAPER.textMuted, fontSize: 13 }}>
+                  Loading model…
+                </div>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: PAPER.textMuted, fontStyle: "italic", marginBottom: 24 }}>
+              Color gradient (blue → orange) illustrates the cool intake / warm discharge concept — a stylized guide, not a CFD result.
+            </div>
+
             <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}`, marginBottom: 24 }}>
               <img src="/images/working/hybrid-cooling-platform.jpg" alt="Hybrid cooling platform concept sketch" style={{ width: "100%", height: "auto", display: "block" }} />
+              <div style={{ fontSize: 10.5, color: PAPER.textMuted, padding: "6px 8px", background: "rgba(255,255,255,0.03)" }}>Original concept sketch</div>
             </div>
 
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Why this research matters</h2>
