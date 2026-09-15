@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
@@ -420,12 +421,6 @@ export default function App() {
   const [dcLoadError, setDcLoadError] = useState(null);
   const [discussOpen, setDiscussOpen] = useState(false);
 
-  useEffect(() => {
-    if (!discussOpen) return;
-    const close = () => setDiscussOpen(false);
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, [discussOpen]);
   const stateRef = useRef({ view: "home", selectedId: null });
   const [view, setView] = useState("home");
   const [selectedId, setSelectedId] = useState(null);
@@ -1174,7 +1169,7 @@ export default function App() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.autoRotate = true;
+    controls.autoRotate = false;
     controls.autoRotateSpeed = 0.7;
     controls.minDistance = 8;
     controls.maxDistance = 45;
@@ -1234,23 +1229,6 @@ export default function App() {
     controls.target.set(-5, 2, 4);
     controls.update();
 
-    // Stylized airflow indicator: small dots traveling from the intake/rack side toward
-    // the water discharge side, color-shifting from cool to warm along the way.
-    const flowCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-7, 2.8, 7.5),
-      new THREE.Vector3(-5, 2, 5.5),
-      new THREE.Vector3(-2, 1.2, 3),
-      new THREE.Vector3(0.5, 0.4, 1),
-    ]);
-    const flowDots = [];
-    const flowGeo = new THREE.SphereGeometry(0.12, 8, 8);
-    for (let i = 0; i < 6; i++) {
-      const mat = new THREE.MeshBasicMaterial({ color: 0x5fb8ff, transparent: true, opacity: 0.9 });
-      const dot = new THREE.Mesh(flowGeo, mat);
-      dcRoot.add(dot);
-      flowDots.push({ mesh: dot, offset: i / 6 });
-    }
-
     function resize() {
       const w = mount.clientWidth;
       const h = mount.clientHeight;
@@ -1269,14 +1247,6 @@ export default function App() {
       rafId = requestAnimationFrame(animate);
       controls.update();
       const t = clock.getElapsedTime();
-
-      const cool = new THREE.Color(0x5fb8ff);
-      const warm = new THREE.Color(0xff9a4d);
-      flowDots.forEach(({ mesh, offset }) => {
-        const tt = (t * 0.12 + offset) % 1;
-        flowCurve.getPointAt(tt, mesh.position);
-        mesh.material.color.copy(cool).lerp(warm, tt);
-      });
 
       const mw = mount.clientWidth;
       const mh = mount.clientHeight;
@@ -1534,6 +1504,20 @@ export default function App() {
               applications, and I aim to bring a design-to-validation mindset to industry challenges.
             </p>
 
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 32 }}>
+              <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}` }}>
+                <img src="/images/about/about-desk.jpg" alt="Sharan at his desk with a CAD model" style={{ width: "100%", height: "auto", display: "block" }} />
+              </div>
+              <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}` }}>
+                <img src="/images/about/about-sampe.jpg" alt="Sharan at the SAMPE Conference & Exhibition" style={{ width: "100%", height: "auto", display: "block" }} />
+                <div style={{ fontSize: 10.5, color: PAPER.textMuted, padding: "6px 8px", background: "rgba(255,255,255,0.03)" }}>SAMPE Conference & Exhibition</div>
+              </div>
+              <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}` }}>
+                <img src="/images/about/about-lanyard.jpg" alt="Receiving his degree at USC" style={{ width: "100%", height: "auto", display: "block" }} />
+                <div style={{ fontSize: 10.5, color: PAPER.textMuted, padding: "6px 8px", background: "rgba(255,255,255,0.03)" }}>Receiving my degree at USC</div>
+              </div>
+            </div>
+
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 12px", color: PAPER.textPrimary }}>Skills</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
               {[
@@ -1688,44 +1672,22 @@ export default function App() {
               <button className="deep-dive-bubble" onClick={openDeepDive}>
                 🔍 Deep dive here
               </button>
-              <div style={{ position: "relative" }}>
-                <button className="discuss-btn" onClick={() => setDiscussOpen((v) => !v)}>
-                  Interested to discuss?
-                </button>
-                {discussOpen && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "calc(100% + 6px)",
-                      left: 0,
-                      background: "rgba(8,10,16,0.96)",
-                      border: `1px solid ${PAPER.panelBorder}`,
-                      borderRadius: 10,
-                      overflow: "hidden",
-                      zIndex: 20,
-                      minWidth: 180,
-                      boxShadow: "0 12px 30px rgba(0,0,0,0.5)",
-                    }}
+              <button className="discuss-btn" onClick={() => setDiscussOpen((v) => !v)}>
+                Interested to discuss?
+              </button>
+              {discussOpen && (
+                <>
+                  <a
+                    className="discuss-btn"
+                    href="mailto:vishnusaisharan.a@gmail.com?subject=Let's%20discuss%20your%20hybrid%20cooling%20research"
                   >
-                    <a
-                      className="discuss-dropdown-item"
-                      href="mailto:vishnusaisharan.a@gmail.com?subject=Let's%20discuss%20your%20hybrid%20cooling%20research"
-                      onClick={() => setDiscussOpen(false)}
-                    >
-                      <Mail size={14} /> Email
-                    </a>
-                    <a
-                      className="discuss-dropdown-item"
-                      href="https://linkedin.com/in/sharan-ankathi"
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => setDiscussOpen(false)}
-                    >
-                      <Linkedin size={14} /> LinkedIn DM
-                    </a>
-                  </div>
-                )}
-              </div>
+                    <Mail size={14} /> Email
+                  </a>
+                  <a className="discuss-btn" href="https://linkedin.com/in/sharan-ankathi" target="_blank" rel="noreferrer">
+                    <Linkedin size={14} /> LinkedIn DM
+                  </a>
+                </>
+              )}
             </div>
 
             <div style={{ fontSize: 16, fontWeight: 600, color: PAPER.accent, marginBottom: 20 }}>
@@ -1735,7 +1697,7 @@ export default function App() {
             <div style={{ fontSize: 11, color: PAPER.textMuted, marginBottom: 8, letterSpacing: "0.02em", textTransform: "uppercase" }}>
               Interactive CAD model — drag to rotate, scroll to zoom
             </div>
-            <div style={{ position: "relative", marginBottom: 10, height: 420 }}>
+            <div style={{ position: "relative", marginBottom: 10, height: 280 }}>
               <div ref={dcMountRef} style={{ width: "100%", height: "100%", touchAction: "none" }} />
               {dcLoading && !dcLoadError && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: PAPER.textMuted, fontSize: 13 }}>
@@ -1762,7 +1724,7 @@ export default function App() {
               )}
             </div>
             <div style={{ fontSize: 11, color: PAPER.textMuted, fontStyle: "italic", marginBottom: 24 }}>
-              Original SolidWorks colors. The moving dots are a stylized airflow guide (cool intake → warm discharge), not a CFD result.
+              Original SolidWorks colors.
             </div>
 
             <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}`, marginBottom: 24 }}>
@@ -1814,7 +1776,7 @@ export default function App() {
             <div style={{ fontSize: 11, color: PAPER.textMuted, marginBottom: 8, letterSpacing: "0.02em", textTransform: "uppercase" }}>
               Interactive CAD model — drag to rotate, scroll to zoom
             </div>
-            <div style={{ position: "relative", marginBottom: 10, height: 420 }}>
+            <div style={{ position: "relative", marginBottom: 10, height: 280 }}>
               <div ref={dcMountRef} style={{ width: "100%", height: "100%", touchAction: "none" }} />
               {dcLoading && !dcLoadError && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: PAPER.textMuted, fontSize: 13 }}>
@@ -1841,7 +1803,7 @@ export default function App() {
               )}
             </div>
             <div style={{ fontSize: 11, color: PAPER.textMuted, fontStyle: "italic", marginBottom: 28 }}>
-              Original SolidWorks colors. The moving dots are a stylized airflow guide (cool intake → warm discharge), not a CFD result.
+              Original SolidWorks colors.
             </div>
 
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Abstract</h2>
@@ -2875,6 +2837,7 @@ export default function App() {
           </div>
         </div>
       )}
+      <Analytics />
     </div>
   );
 }
