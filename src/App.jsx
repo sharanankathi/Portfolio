@@ -68,25 +68,25 @@ const PROJECTS = [
     stats: [
       { label: "0.3W junction", value: "90°C" },
       { label: "35W junction", value: "80.2°C" },
-      { label: "Peak solder stress", value: "865 MPa (both)" },
-      { label: "Warpage", value: "15.5 µm (both)" },
+      { label: "0.3W warpage", value: "15.5 µm" },
+      { label: "35W peak solder stress", value: "865 MPa" },
     ],
     description:
-      "Ran the same coupled thermal-structural workflow — SolidWorks package modeling into ANSYS Icepak and Mechanical — on two BGA packages spanning a 117x power range: a 69-body 0.3W part under natural convection, and a 295-body 35W CPU-class part under forced convection. The 35W package's copper heat spreader actually produced a smaller temperature rise than the naturally-cooled 0.3W part, while both hit an identical 865 MPa of peak solder stress — showing the CTE-mismatch fatigue mechanism doesn't care how much power the die dissipates.",
+      "Ran the same coupled thermal-structural workflow — SolidWorks package modeling into ANSYS Icepak and Mechanical — on two BGA packages spanning a 117x power range: a 69-body 0.3W part under natural convection, and a 295-body 35W CPU-class part under forced convection. The 35W package's copper heat spreader actually produced a smaller temperature rise than the naturally-cooled 0.3W part. Warpage was captured for the 0.3W part (15.5 µm) and peak solder stress for the 35W part (865 MPa) — both pointing to the same underlying CTE mismatch (21 ppm/°C solder vs. 17 ppm/°C substrate) driving fatigue risk in either design.",
     relevantTo: ["Battery thermal management (BTMS)", "Power electronics cooling", "Thermal-structural simulation (ANSYS Icepak)"],
     caseStudy: {
-      impact: "Traced the same CTE-mismatch failure mechanism across two BGA packages spanning a 117x power range — and found it doesn't care how much power the die dissipates.",
+      impact: "Traced the same CTE-mismatch failure mechanism across two BGA packages spanning a 117x power range — captured as warpage in the 0.3W case and peak solder stress in the 35W case.",
       metrics: [
         { value: "90°C", label: "0.3W junction (+65°C rise)" },
         { value: "80.2°C", label: "35W junction (+55.2°C rise)" },
-        { value: "865 MPa", label: "Peak solder stress, both" },
-        { value: "15.5 µm", label: "Warpage, both" },
+        { value: "15.5 µm", label: "0.3W warpage" },
+        { value: "865 MPa", label: "35W peak solder stress" },
       ],
       tools: ["SolidWorks", "ANSYS Icepak", "ANSYS Mechanical"],
       challenge: {
         problem: "Does CTE-mismatch-driven solder fatigue risk scale with power level — meaning a 35W part should be far worse off than a 0.3W part — or is it governed by something else entirely?",
         approach: "Built both package stacks in SolidWorks (a 69-body low-power part, a 295-body CPU-class part with a copper IHS and indium TIM), then ran each through the same coupled thermal simulation (ANSYS Icepak, matched to each part's realistic cooling method) into a structural analysis (ANSYS Mechanical).",
-        result: "The 35W part, despite 117x the power, saw a *smaller* temperature rise than the 0.3W part thanks to its copper IHS and forced convection — yet both parts hit an identical 865 MPa of peak solder stress, confirming that solder joint reliability here is governed by the CTE mismatch itself, not by absolute power or peak temperature.",
+        result: "The 35W part, despite 117x the power, saw a *smaller* temperature rise than the 0.3W part thanks to its copper IHS and forced convection. Warpage was captured for the 0.3W part (15.5 µm) and peak solder stress for the 35W part (865 MPa) — both driven by the same underlying CTE mismatch between solder and substrate, regardless of power level.",
       },
       process: [
         {
@@ -96,7 +96,7 @@ const PROJECTS = [
         },
         {
           title: "0.3W — Run the natural-convection simulation",
-          description: "Applied 0.3W to the die and h ≈ 5–10 W/m²·K across all exposed surfaces in ANSYS Icepak, finding a 90°C junction temperature and a thermal gradient down to 27°C at the PCB edge. The structural pass then found 865 MPa of peak solder stress and 15.5 µm of warpage, driven by the 4 ppm/°C CTE mismatch between solder and substrate.",
+          description: "Applied 0.3W to the die and h ≈ 5–10 W/m²·K across all exposed surfaces in ANSYS Icepak, finding a 90°C junction temperature and a thermal gradient down to 27°C at the PCB edge. The structural pass then found 15.5 µm of warpage, driven by the 4 ppm/°C CTE mismatch between solder and substrate.",
         },
         {
           title: "0.3W — Identify the fix",
@@ -113,7 +113,7 @@ const PROJECTS = [
         },
         {
           title: "35W — Solve the structural response & identify the fix",
-          description: "Found 865 MPa of peak solder stress (identical to the 0.3W package) and <5 µm of IHS flatness deviation. Flagged TIM1 pump-out under power cycling as the primary long-term risk, and proposed an indium/liquid-metal TIM1, a frame seal around TIM1, and substrate CTE engineering toward 19–20 ppm/°C to pull solder stress below an 800 MPa fatigue threshold.",
+          description: "Found 865 MPa of peak solder stress at the corner balls and <5 µm of IHS flatness deviation. Flagged TIM1 pump-out under power cycling as the primary long-term risk, and proposed an indium/liquid-metal TIM1, a frame seal around TIM1, and substrate CTE engineering toward 19–20 ppm/°C to pull solder stress below an 800 MPa fatigue threshold.",
         },
       ],
     },
@@ -2497,7 +2497,6 @@ export default function App() {
                 </thead>
                 <tbody>
                   {[
-                    ["Solder ball von Mises stress (max)", "865 MPa", "Located at outermost corner balls"],
                     ["Package warpage", "15.5 µm", "Concave. Die side warmer, substrate cooler"],
                     ["CTE of solder (SAC305)", "21 ppm/°C", "Relative expansion driver"],
                     ["CTE of substrate (BT resin)", "17 ppm/°C", "CTE mismatch = 4 ppm/°C"],
@@ -2629,7 +2628,6 @@ export default function App() {
                 <tbody>
                   {[
                     ["Solder ball von Mises stress (max)", "865 MPa", "Corner balls had highest CTE mismatch location"],
-                    ["Package warpage", "15.5 µm", "Comparable to 0.3W case, IHS distributes stress"],
                     ["Die stress (max)", "~120 MPa", "Tensile stress at die corners under cooling"],
                     ["IHS flatness deviation", "<5 µm", "Copper IHS high stiffness limits warpage"],
                     ["CTE — copper IHS", "17 ppm/°C", "Close match to substrate, reduces warpage"],
@@ -2700,10 +2698,11 @@ export default function App() {
               <div style={{ fontSize: 10, color: PAPER.accent, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Key Insight</div>
               <div style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
                 Despite a 117x increase in power dissipation (0.3W to 35W), the CPU package achieves a <em>lower</em> junction-temperature rise
-                (+55.2°C vs. +65°C above ambient) demonstrating that forced convection with a copper IHS and high-k TIM fundamentally changes
-                the thermal management equation at high power levels. The identical solder ball stress (865 MPa) in both cases reflects the same
-                underlying CTE mismatch physics, independent of power level, and confirms that solder joint reliability is driven by temperature
-                cycling range rather than absolute peak temperature.
+                (+55.2°C vs. +65°C above ambient), demonstrating that forced convection with a copper IHS and high-k TIM fundamentally changes
+                the thermal management equation at high power levels. The structural analysis captured a different metric for each case —
+                15.5 µm of warpage for the 0.3W package, 865 MPa of peak solder stress for the 35W package — but both trace back to the same
+                underlying CTE mismatch between solder (21 ppm/°C) and substrate (17 ppm/°C), confirming that this fatigue risk exists across
+                the full power range rather than being specific to one design point.
               </div>
             </div>
           </div>
