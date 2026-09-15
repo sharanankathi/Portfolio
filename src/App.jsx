@@ -1225,8 +1225,8 @@ export default function App() {
       }
     );
 
-    camera.position.set(6, 10, 22);
-    controls.target.set(-5, 2, 4);
+    camera.position.set(6, 8, 22);
+    controls.target.set(-5, 0, 4);
     controls.update();
 
     function resize() {
