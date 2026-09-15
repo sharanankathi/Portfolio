@@ -182,7 +182,7 @@ const EXPERIENCE = [
         {
           title: "Standardize & compete",
           description: "Documented the fixed procedure for the whole lab, then took both parts to SAMPE — winning 4 of 7 categories plus the fuselage category outright.",
-          images: [{ caption: "SAMPE competition" }],
+          images: [{ src: "/images/about/about-sampe.jpg", caption: "SAMPE competition" }],
         },
       ],
     },
@@ -1494,28 +1494,29 @@ export default function App() {
         <div className="dialog-window" style={{ zIndex: 6 }}>
           <div style={{ maxWidth: 760, margin: "0 auto", padding: "20px 28px 80px" }}>
             <h1 style={{ margin: "0 0 20px", fontSize: 28, fontWeight: 700 }}>About Me</h1>
-            <p style={{ fontSize: 15, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 32px", maxWidth: 700 }}>
-              I am a graduate Mechanical Engineering student at the University of Southern California with a strong foundation in CAD design,
-              FEA/CFD simulation, and hands-on fabrication. My experience spans from designing and fabricating hydrogen fuel cell vehicles and
-              composite structures to performing advanced thermal–structural simulations of electronic chip packages. I combine practical
-              manufacturing skills — including welding, machining, 3D printing, and composite layups — with high-level analysis using ANSYS,
-              Abaqus, and CATIA. My projects demonstrate an ability to take concepts from modeling to real-world validation, balancing innovation
-              with manufacturability. I am particularly passionate about thermal management, structural optimization, and automotive
-              applications, and I aim to bring a design-to-validation mindset to industry challenges.
-            </p>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 32 }}>
-              <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}` }}>
-                <img src="/images/about/about-desk.jpg" alt="Sharan at his desk with a CAD model" style={{ width: "100%", height: "auto", display: "block" }} />
-              </div>
-              <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}` }}>
-                <img src="/images/about/about-sampe.jpg" alt="Sharan at the SAMPE Conference & Exhibition" style={{ width: "100%", height: "auto", display: "block" }} />
-                <div style={{ fontSize: 10.5, color: PAPER.textMuted, padding: "6px 8px", background: "rgba(255,255,255,0.03)" }}>SAMPE Conference & Exhibition</div>
-              </div>
-              <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}` }}>
-                <img src="/images/about/about-lanyard.jpg" alt="Receiving his degree at USC" style={{ width: "100%", height: "auto", display: "block" }} />
-                <div style={{ fontSize: 10.5, color: PAPER.textMuted, padding: "6px 8px", background: "rgba(255,255,255,0.03)" }}>Receiving my degree at USC</div>
-              </div>
+            <div style={{ overflow: "hidden", marginBottom: 32 }}>
+              <img
+                src="/images/about/about-desk.jpg"
+                alt="Sharan at his desk with a CAD model"
+                style={{
+                  float: "right",
+                  width: 260,
+                  height: "auto",
+                  marginLeft: 20,
+                  marginBottom: 12,
+                  borderRadius: 12,
+                  border: `1px solid ${PAPER.panelBorder}`,
+                }}
+              />
+              <p style={{ fontSize: 15, lineHeight: 1.7, color: PAPER.textMuted, margin: 0 }}>
+                I am a graduate Mechanical Engineering student at the University of Southern California with a strong foundation in CAD design,
+                FEA/CFD simulation, and hands-on fabrication. My experience spans from designing and fabricating hydrogen fuel cell vehicles and
+                composite structures to performing advanced thermal–structural simulations of electronic chip packages. I combine practical
+                manufacturing skills — including welding, machining, 3D printing, and composite layups — with high-level analysis using ANSYS,
+                Abaqus, and CATIA. My projects demonstrate an ability to take concepts from modeling to real-world validation, balancing innovation
+                with manufacturability. I am particularly passionate about thermal management, structural optimization, and automotive
+                applications, and I aim to bring a design-to-validation mindset to industry challenges.
+              </p>
             </div>
 
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 12px", color: PAPER.textPrimary }}>Skills</h2>
@@ -1538,6 +1539,17 @@ export default function App() {
               <li>Multiphysics thermal-structural simulation of electronic packages</li>
               <li>Hands-on composites fabrication and vehicle assembly</li>
             </ul>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16, marginTop: 32 }}>
+              <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}` }}>
+                <img src="/images/about/about-sampe.jpg" alt="Sharan at the SAMPE Conference & Exhibition" style={{ width: "100%", height: "auto", display: "block" }} />
+                <div style={{ fontSize: 10.5, color: PAPER.textMuted, padding: "6px 8px", background: "rgba(255,255,255,0.03)" }}>SAMPE Conference & Exhibition</div>
+              </div>
+              <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}` }}>
+                <img src="/images/about/about-lanyard.jpg" alt="Receiving his degree at USC" style={{ width: "100%", height: "auto", display: "block" }} />
+                <div style={{ fontSize: 10.5, color: PAPER.textMuted, padding: "6px 8px", background: "rgba(255,255,255,0.03)" }}>Receiving my degree at USC</div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1697,7 +1709,7 @@ export default function App() {
             <div style={{ fontSize: 11, color: PAPER.textMuted, marginBottom: 8, letterSpacing: "0.02em", textTransform: "uppercase" }}>
               Interactive CAD model — drag to rotate, scroll to zoom
             </div>
-            <div style={{ position: "relative", marginBottom: 10, height: 280 }}>
+            <div style={{ position: "relative", marginBottom: 10, height: 480 }}>
               <div ref={dcMountRef} style={{ width: "100%", height: "100%", touchAction: "none" }} />
               {dcLoading && !dcLoadError && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: PAPER.textMuted, fontSize: 13 }}>
@@ -1724,7 +1736,7 @@ export default function App() {
               )}
             </div>
             <div style={{ fontSize: 11, color: PAPER.textMuted, fontStyle: "italic", marginBottom: 24 }}>
-              Original SolidWorks colors.
+              Currently running thermal and structural simulations on this design to validate feasibility.
             </div>
 
             <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}`, marginBottom: 24 }}>
@@ -1776,7 +1788,7 @@ export default function App() {
             <div style={{ fontSize: 11, color: PAPER.textMuted, marginBottom: 8, letterSpacing: "0.02em", textTransform: "uppercase" }}>
               Interactive CAD model — drag to rotate, scroll to zoom
             </div>
-            <div style={{ position: "relative", marginBottom: 10, height: 280 }}>
+            <div style={{ position: "relative", marginBottom: 10, height: 480 }}>
               <div ref={dcMountRef} style={{ width: "100%", height: "100%", touchAction: "none" }} />
               {dcLoading && !dcLoadError && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: PAPER.textMuted, fontSize: 13 }}>
@@ -1803,7 +1815,7 @@ export default function App() {
               )}
             </div>
             <div style={{ fontSize: 11, color: PAPER.textMuted, fontStyle: "italic", marginBottom: 28 }}>
-              Original SolidWorks colors.
+              Currently running thermal and structural simulations on this design to validate feasibility.
             </div>
 
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Abstract</h2>
