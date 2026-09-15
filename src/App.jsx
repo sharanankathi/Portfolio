@@ -418,6 +418,14 @@ export default function App() {
   const dcMountRef = useRef(null);
   const [dcLoading, setDcLoading] = useState(true);
   const [dcLoadError, setDcLoadError] = useState(null);
+  const [discussOpen, setDiscussOpen] = useState(false);
+
+  useEffect(() => {
+    if (!discussOpen) return;
+    const close = () => setDiscussOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [discussOpen]);
   const stateRef = useRef({ view: "home", selectedId: null });
   const [view, setView] = useState("home");
   const [selectedId, setSelectedId] = useState(null);
@@ -1148,7 +1156,7 @@ export default function App() {
 
   // --- Data center CAD model viewer (separate scene, mounted only on the Working On page) ---
   useEffect(() => {
-    if (view !== "working") return;
+    if (view !== "working" && view !== "deepdive") return;
     const mount = dcMountRef.current;
     if (!mount) return;
 
@@ -1183,18 +1191,6 @@ export default function App() {
 
     const dcRoot = new THREE.Group();
     scene.add(dcRoot);
-
-    // Approximate world-space anchors for callouts, derived from inspecting the model's
-    // geometry (the source file has no per-part names, so these are hand-placed based on
-    // the actual bounding regions of each visible cluster).
-    const DC_ANCHORS = {
-      racks: { pos: new THREE.Vector3(-6, 2.4, 7.2), label: "Server Racks (Free-Air Cooled)" },
-      pipes: { pos: new THREE.Vector3(0.5, 1.8, 7), label: "Seawater Pipes" },
-      legs: { pos: new THREE.Vector3(-4, -0.6, 2.5), label: "Support Legs" },
-      bridge: { pos: new THREE.Vector3(-9, 2.6, 3.5), label: "Pedestrian Bridge" },
-      cliff: { pos: new THREE.Vector3(-13.5, 4.5, 0), label: "Coastal Cliff" },
-      platform: { pos: new THREE.Vector3(-3, 0.3, 3.5), label: "Above-Water Platform" },
-    };
 
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
@@ -1237,38 +1233,6 @@ export default function App() {
     camera.position.set(6, 10, 22);
     controls.target.set(-5, 2, 4);
     controls.update();
-
-    // Leader-line label overlay, same technique as the car
-    const svgNS = "http://www.w3.org/2000/svg";
-    const overlaySvg = document.createElementNS(svgNS, "svg");
-    overlaySvg.setAttribute("style", "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;");
-    mount.appendChild(overlaySvg);
-    const labelEls = {};
-    Object.entries(DC_ANCHORS).forEach(([key, { label }]) => {
-      const g = document.createElementNS(svgNS, "g");
-      const line = document.createElementNS(svgNS, "line");
-      line.setAttribute("stroke", "#4FA8FF");
-      line.setAttribute("stroke-width", "1.2");
-      g.appendChild(line);
-      const dot = document.createElementNS(svgNS, "circle");
-      dot.setAttribute("r", "3");
-      dot.setAttribute("fill", "#4FA8FF");
-      g.appendChild(dot);
-      const rect = document.createElementNS(svgNS, "rect");
-      rect.setAttribute("rx", "4");
-      rect.setAttribute("fill", "rgba(8,11,18,0.88)");
-      rect.setAttribute("stroke", "rgba(79,168,255,0.45)");
-      g.appendChild(rect);
-      const text = document.createElementNS(svgNS, "text");
-      text.setAttribute("fill", "#F2F5FA");
-      text.setAttribute("font-size", "11");
-      text.setAttribute("font-family", FONT_SANS);
-      text.setAttribute("dominant-baseline", "middle");
-      text.textContent = label;
-      g.appendChild(text);
-      overlaySvg.appendChild(g);
-      labelEls[key] = { g, line, dot, rect, text };
-    });
 
     // Stylized airflow indicator: small dots traveling from the intake/rack side toward
     // the water discharge side, color-shifting from cool to warm along the way.
@@ -1316,35 +1280,6 @@ export default function App() {
 
       const mw = mount.clientWidth;
       const mh = mount.clientHeight;
-      Object.entries(DC_ANCHORS).forEach(([key, { pos }]) => {
-        const el = labelEls[key];
-        if (!el || !mw || !mh) return;
-        const p = pos.clone().project(camera);
-        if (p.z > 1) {
-          el.g.style.opacity = "0";
-          return;
-        }
-        const sx = (p.x * 0.5 + 0.5) * mw;
-        const sy = (-p.y * 0.5 + 0.5) * mh;
-        const boxX = sx + 40;
-        const boxY = sy - 10;
-        const label = DC_ANCHORS[key].label;
-        const boxW = Math.max(60, label.length * 5.6 + 14);
-        const boxH = 20;
-        el.line.setAttribute("x1", sx);
-        el.line.setAttribute("y1", sy);
-        el.line.setAttribute("x2", boxX);
-        el.line.setAttribute("y2", boxY + boxH / 2);
-        el.dot.setAttribute("cx", sx);
-        el.dot.setAttribute("cy", sy);
-        el.rect.setAttribute("x", boxX);
-        el.rect.setAttribute("y", boxY);
-        el.rect.setAttribute("width", boxW);
-        el.rect.setAttribute("height", boxH);
-        el.text.setAttribute("x", boxX + 7);
-        el.text.setAttribute("y", boxY + boxH / 2 + 1);
-        el.g.style.opacity = sx >= 0 && sx <= mw && sy >= 0 && sy <= mh ? "1" : "0";
-      });
 
       renderer.render(scene, camera);
     }
@@ -1355,7 +1290,6 @@ export default function App() {
       ro.disconnect();
       controls.dispose();
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
-      if (mount.contains(overlaySvg)) mount.removeChild(overlaySvg);
       scene.traverse((obj) => {
         if (obj.geometry) obj.geometry.dispose();
         if (obj.material) {
@@ -1445,6 +1379,12 @@ export default function App() {
           cursor: pointer; text-decoration: none; transition: background 0.2s ease;
         }
         .discuss-btn:hover { background: ${COLORS.accentSoft}; }
+        .discuss-dropdown-item {
+          display: flex; align-items: center; gap: 8px;
+          padding: 10px 14px; color: ${COLORS.textPrimary}; font-size: 13px;
+          text-decoration: none; transition: background 0.15s ease;
+        }
+        .discuss-dropdown-item:hover { background: ${COLORS.accentSoft}; }
         @media (max-width: 780px) {
           .home-panel { position: static !important; margin: 20px; width: auto !important; transform: none !important; }
           .dialog-window { left: 12px; right: 12px; top: 96px; bottom: 12px; }
@@ -1476,7 +1416,7 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {!isHome && (
             <button className="back-btn" onClick={isCaseStudy ? backFromCaseStudy : isDeepDive ? backFromDeepDive : goHome}>
-              <ArrowLeft size={14} /> {isCaseStudy ? (caseStudyOrigin === "projects" ? "Projects" : "Experience") : isDeepDive ? "What I'm Working On" : "Home"}
+              <ArrowLeft size={14} /> {isCaseStudy ? (caseStudyOrigin === "projects" ? "Projects" : "Experience") : isDeepDive ? "I Have an Idea" : "Home"}
             </button>
           )}
           <div>
@@ -1549,7 +1489,7 @@ export default function App() {
             <BookOpen size={18} /> Literature Survey
           </button>
           <button className="nav-btn" onClick={() => openSection("working")}>
-            <Lightbulb size={18} /> What I'm Working On
+            <Lightbulb size={18} /> I Have an Idea
           </button>
           <button className="nav-btn" onClick={() => openSection("about")}>
             <User size={18} /> About Me
@@ -1742,18 +1682,50 @@ export default function App() {
       {isWorking && (
         <div className="dialog-window" style={{ zIndex: 6 }}>
           <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 28px 80px" }}>
-            <h1 style={{ margin: "0 0 16px", fontSize: 28, fontWeight: 700 }}>What I'm Working On</h1>
+            <h1 style={{ margin: "0 0 16px", fontSize: 28, fontWeight: 700 }}>I Have an Idea</h1>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24, position: "relative" }}>
               <button className="deep-dive-bubble" onClick={openDeepDive}>
                 🔍 Deep dive here
               </button>
-              <a className="discuss-btn" href="mailto:vishnusaisharan.a@gmail.com?subject=Let's%20discuss%20your%20hybrid%20cooling%20research">
-                <Mail size={15} /> Discuss via Email
-              </a>
-              <a className="discuss-btn" href="https://linkedin.com/in/sharan-ankathi" target="_blank" rel="noreferrer">
-                <Linkedin size={15} /> Discuss on LinkedIn
-              </a>
+              <div style={{ position: "relative" }}>
+                <button className="discuss-btn" onClick={() => setDiscussOpen((v) => !v)}>
+                  Interested to discuss?
+                </button>
+                {discussOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      left: 0,
+                      background: "rgba(8,10,16,0.96)",
+                      border: `1px solid ${PAPER.panelBorder}`,
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      zIndex: 20,
+                      minWidth: 180,
+                      boxShadow: "0 12px 30px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    <a
+                      className="discuss-dropdown-item"
+                      href="mailto:vishnusaisharan.a@gmail.com?subject=Let's%20discuss%20your%20hybrid%20cooling%20research"
+                      onClick={() => setDiscussOpen(false)}
+                    >
+                      <Mail size={14} /> Email
+                    </a>
+                    <a
+                      className="discuss-dropdown-item"
+                      href="https://linkedin.com/in/sharan-ankathi"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setDiscussOpen(false)}
+                    >
+                      <Linkedin size={14} /> LinkedIn DM
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ fontSize: 16, fontWeight: 600, color: PAPER.accent, marginBottom: 20 }}>
@@ -1763,17 +1735,7 @@ export default function App() {
             <div style={{ fontSize: 11, color: PAPER.textMuted, marginBottom: 8, letterSpacing: "0.02em", textTransform: "uppercase" }}>
               Interactive CAD model — drag to rotate, scroll to zoom
             </div>
-            <div
-              style={{
-                position: "relative",
-                borderRadius: 12,
-                overflow: "hidden",
-                border: `1px solid ${PAPER.panelBorder}`,
-                marginBottom: 10,
-                height: 420,
-                background: "rgba(255,255,255,0.02)",
-              }}
-            >
+            <div style={{ position: "relative", marginBottom: 10, height: 420 }}>
               <div ref={dcMountRef} style={{ width: "100%", height: "100%", touchAction: "none" }} />
               {dcLoading && !dcLoadError && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: PAPER.textMuted, fontSize: 13 }}>
@@ -1848,6 +1810,39 @@ export default function App() {
             </h1>
             <div style={{ fontSize: 14, fontStyle: "italic", color: PAPER.textMuted, marginBottom: 4 }}>A Feasibility Study and Conceptual Design Model</div>
             <div style={{ fontSize: 12, color: PAPER.accent, fontFamily: FONT_MONO, marginBottom: 28 }}>Working draft — conceptual design and feasibility modeling phase</div>
+
+            <div style={{ fontSize: 11, color: PAPER.textMuted, marginBottom: 8, letterSpacing: "0.02em", textTransform: "uppercase" }}>
+              Interactive CAD model — drag to rotate, scroll to zoom
+            </div>
+            <div style={{ position: "relative", marginBottom: 10, height: 420 }}>
+              <div ref={dcMountRef} style={{ width: "100%", height: "100%", touchAction: "none" }} />
+              {dcLoading && !dcLoadError && (
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: PAPER.textMuted, fontSize: 13 }}>
+                  Loading model…
+                </div>
+              )}
+              {dcLoadError && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    background: "rgba(200,50,50,0.15)",
+                    border: "1px solid rgba(255,100,100,0.4)",
+                    color: "#ffb3b3",
+                    padding: "10px 14px",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                >
+                  {dcLoadError}
+                </div>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: PAPER.textMuted, fontStyle: "italic", marginBottom: 28 }}>
+              Original SolidWorks colors. The moving dots are a stylized airflow guide (cool intake → warm discharge), not a CFD result.
+            </div>
 
             <h2 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Abstract</h2>
             <p style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted, margin: "0 0 28px" }}>
