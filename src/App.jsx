@@ -441,24 +441,81 @@ export default function App() {
     stateRef.current.selectedId = selectedId;
   }, [selectedId]);
 
+  // --- Lightweight hash-based routing, so every page has a real, shareable URL ---
+  // (e.g. #working, #working/deepdive, #case-study/bga-thermal-analysis, #projects/electronics)
+  function applyHash() {
+    const h = window.location.hash.replace(/^#/, "");
+    if (!h) {
+      setView("home");
+      setSelectedId(null);
+      setCaseStudyId(null);
+      return;
+    }
+    const parts = h.split("/");
+    if (parts[0] === "case-study" && parts[1]) {
+      const id = parts[1];
+      const origin = PROJECTS.some((p) => p.id === id) ? "projects" : "experience";
+      setCaseStudyOrigin(origin);
+      setCaseStudyId(id);
+      setView("case-study");
+      return;
+    }
+    if (parts[0] === "working" && parts[1] === "deepdive") {
+      setView("deepdive");
+      return;
+    }
+    if ((parts[0] === "projects" || parts[0] === "experience") && parts[1]) {
+      setView(parts[0]);
+      setSelectedId(parts[1]);
+      return;
+    }
+    setView(parts[0]);
+    setSelectedId(null);
+    setCaseStudyId(null);
+  }
+
+  useEffect(() => {
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function goHome() {
     setView("home");
     setSelectedId(null);
     setCaseStudyId(null);
+    window.location.hash = "";
   }
   function openSection(v) {
     setView(v);
     setSelectedId(null);
     setCaseStudyId(null);
+    window.location.hash = v;
+  }
+  function selectItem(id) {
+    const newId = selectedId === id ? null : id;
+    setSelectedId(newId);
+    window.location.hash = newId ? `${view}/${newId}` : view;
   }
   function openCaseStudy(id) {
     setCaseStudyOrigin(view);
     setCaseStudyId(id);
     setView("case-study");
+    window.location.hash = `case-study/${id}`;
   }
   function backFromCaseStudy() {
     setCaseStudyId(null);
     setView(caseStudyOrigin);
+    window.location.hash = caseStudyOrigin;
+  }
+  function openDeepDive() {
+    setView("deepdive");
+    window.location.hash = "working/deepdive";
+  }
+  function backFromDeepDive() {
+    setView("working");
+    window.location.hash = "working";
   }
 
   useEffect(() => {
@@ -1149,6 +1206,21 @@ export default function App() {
           box-shadow: 0 24px 70px rgba(0,0,0,0.55);
           animation: genieOpen 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
+        .deep-dive-bubble {
+          display: inline-flex; align-items: center; gap: 10px;
+          background: ${COLORS.accent}; color: #04101f; border: none;
+          padding: 14px 26px; border-radius: 999px; font-size: 15px; font-weight: 700;
+          cursor: pointer; box-shadow: 0 8px 24px rgba(79,168,255,0.35);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .deep-dive-bubble:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 12px 30px rgba(79,168,255,0.5); }
+        .discuss-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: ${COLORS.panelGlass}; border: 1px solid ${COLORS.panelBorder}; color: ${COLORS.textPrimary};
+          padding: 10px 18px; border-radius: 999px; font-size: 13px; font-weight: 600;
+          cursor: pointer; text-decoration: none; transition: background 0.2s ease;
+        }
+        .discuss-btn:hover { background: ${COLORS.accentSoft}; }
         @media (max-width: 780px) {
           .home-panel { position: static !important; margin: 20px; width: auto !important; transform: none !important; }
           .dialog-window { left: 12px; right: 12px; top: 96px; bottom: 12px; }
@@ -1179,7 +1251,7 @@ export default function App() {
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, padding: "20px 28px", position: "relative", zIndex: 5 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {!isHome && (
-            <button className="back-btn" onClick={isCaseStudy ? backFromCaseStudy : isDeepDive ? () => setView("working") : goHome}>
+            <button className="back-btn" onClick={isCaseStudy ? backFromCaseStudy : isDeepDive ? backFromDeepDive : goHome}>
               <ArrowLeft size={14} /> {isCaseStudy ? (caseStudyOrigin === "projects" ? "Projects" : "Experience") : isDeepDive ? "What I'm Working On" : "Home"}
             </button>
           )}
@@ -1446,16 +1518,20 @@ export default function App() {
       {isWorking && (
         <div className="dialog-window" style={{ zIndex: 6 }}>
           <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 28px 80px" }}>
-            <h1 style={{ margin: "0 0 6px", fontSize: 28, fontWeight: 700 }}>What I'm Working On</h1>
-            <div style={{ fontSize: 14, color: PAPER.textMuted, marginBottom: 6 }}>
-              Interested?{" "}
-              <button
-                onClick={() => setView("deepdive")}
-                style={{ background: "none", border: "none", padding: 0, color: PAPER.accent, fontSize: 14, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}
-              >
-                Deep dive here
+            <h1 style={{ margin: "0 0 16px", fontSize: 28, fontWeight: 700 }}>What I'm Working On</h1>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
+              <button className="deep-dive-bubble" onClick={openDeepDive}>
+                🔍 Deep dive here
               </button>
+              <a className="discuss-btn" href="mailto:vishnusaisharan.a@gmail.com?subject=Let's%20discuss%20your%20hybrid%20cooling%20research">
+                <Mail size={15} /> Discuss via Email
+              </a>
+              <a className="discuss-btn" href="https://linkedin.com/in/sharan-ankathi" target="_blank" rel="noreferrer">
+                <Linkedin size={15} /> Discuss on LinkedIn
+              </a>
             </div>
+
             <div style={{ fontSize: 16, fontWeight: 600, color: PAPER.accent, marginBottom: 20 }}>
               Hybrid marine-layer / seawater cooling for coastal data centers
             </div>
@@ -1931,7 +2007,7 @@ export default function App() {
             const Icon = s.icon;
             const active = selectedId === s.id;
             return (
-              <button key={s.id} className={`sys-btn${active ? " active" : ""}`} style={{ padding: "11px 16px" }} onClick={() => setSelectedId(active ? null : s.id)}>
+              <button key={s.id} className={`sys-btn${active ? " active" : ""}`} style={{ padding: "11px 16px" }} onClick={() => selectItem(s.id)}>
                 <Icon size={16} />
                 {s.label}
               </button>
