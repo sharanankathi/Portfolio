@@ -1205,53 +1205,14 @@ export default function App() {
       (gltf) => {
         try {
           const model = gltf.scene;
+          // The SolidWorks export keeps Z as the vertical axis (see the axis triad in the
+          // CAD screenshot), but Three.js/OrbitControls expect Y-up. Rotate the whole model
+          // to match — this is the only orientation fix needed; materials are left as-is.
+          model.rotation.x = -Math.PI / 2;
           let meshCount = 0;
           model.traverse((child) => {
             if (!child.isMesh || !child.material) return;
             meshCount++;
-            const c = child.material.color;
-            const isWater = c && c.b > 0.6 && c.r < 0.3;
-
-            if (isWater) {
-              child.material = new THREE.MeshPhysicalMaterial({
-                color: 0x2a7fc9,
-                transparent: true,
-                opacity: 0.82,
-                roughness: 0.25,
-                metalness: 0.1,
-                clearcoat: 0.4,
-              });
-            } else {
-              // Equipment + cliff mesh — apply a stylized thermal gradient (cool intake blue
-              // -> warm discharge orange) across the platform equipment only, based on each
-              // vertex's Y position; the cliff (x < -9) stays a neutral stone gray.
-              const geo = child.geometry;
-              const posAttr = geo.attributes.position;
-              const colors = new Float32Array(posAttr.count * 3);
-              const cliffColor = new THREE.Color(0xc9cdd4);
-              const coolColor = new THREE.Color(0x5fb8ff);
-              const warmColor = new THREE.Color(0xff9a4d);
-              for (let i = 0; i < posAttr.count; i++) {
-                const x = posAttr.getX(i);
-                const y = posAttr.getY(i);
-                let col;
-                if (x < -9) {
-                  col = cliffColor;
-                } else {
-                  const t = THREE.MathUtils.clamp((8 - y) / 8, 0, 1);
-                  col = coolColor.clone().lerp(warmColor, t);
-                }
-                colors[i * 3] = col.r;
-                colors[i * 3 + 1] = col.g;
-                colors[i * 3 + 2] = col.b;
-              }
-              geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-              child.material = new THREE.MeshStandardMaterial({
-                vertexColors: true,
-                roughness: 0.55,
-                metalness: 0.1,
-              });
-            }
           });
           dcRoot.add(model);
           console.log(`[data-center] Loaded OK — ${meshCount} meshes`);
@@ -1839,7 +1800,7 @@ export default function App() {
               )}
             </div>
             <div style={{ fontSize: 11, color: PAPER.textMuted, fontStyle: "italic", marginBottom: 24 }}>
-              Color gradient (blue → orange) illustrates the cool intake / warm discharge concept — a stylized guide, not a CFD result.
+              Original SolidWorks colors. The moving dots are a stylized airflow guide (cool intake → warm discharge), not a CFD result.
             </div>
 
             <div style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${PAPER.panelBorder}`, marginBottom: 24 }}>
