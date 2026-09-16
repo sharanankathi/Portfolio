@@ -69,25 +69,25 @@ const PROJECTS = [
     stats: [
       { label: "0.3W junction", value: "90°C" },
       { label: "35W junction", value: "80.2°C" },
+      { label: "0.3W peak solder stress", value: "865 MPa" },
       { label: "0.3W warpage", value: "15.5 µm" },
-      { label: "35W peak solder stress", value: "865 MPa" },
     ],
     description:
-      "Ran the same coupled thermal-structural workflow — SolidWorks package modeling into ANSYS Icepak and Mechanical — on two BGA packages spanning a 117x power range: a 69-body 0.3W part under natural convection, and a 295-body 35W CPU-class part under forced convection. The 35W package's copper heat spreader actually produced a smaller temperature rise than the naturally-cooled 0.3W part. Warpage was captured for the 0.3W part (15.5 µm) and peak solder stress for the 35W part (865 MPa) — both pointing to the same underlying CTE mismatch (21 ppm/°C solder vs. 17 ppm/°C substrate) driving fatigue risk in either design.",
+      "Ran the same coupled thermal-structural workflow — SolidWorks package modeling into ANSYS Icepak and Mechanical — on two BGA packages spanning a 117x power range: a 69-body 0.3W part under natural convection, and a 295-body 35W CPU-class part under forced convection. The 35W package's copper heat spreader actually produced a smaller temperature rise than the naturally-cooled 0.3W part — and structurally, it's the lower-power 0.3W part that carries the real risk: 865 MPa of peak solder stress and 15.5 µm of warpage, driven by the CTE mismatch (21 ppm/°C solder vs. 17 ppm/°C substrate). The 35W package's copper IHS and denser solder grid distributed that same mismatch well enough that no comparable structural risk was found there.",
     relevantTo: ["Battery thermal management (BTMS)", "Power electronics cooling", "Thermal-structural simulation (ANSYS Icepak)"],
     caseStudy: {
-      impact: "Traced the same CTE-mismatch failure mechanism across two BGA packages spanning a 117x power range — captured as warpage in the 0.3W case and peak solder stress in the 35W case.",
+      impact: "Found that the lower-power 0.3W package, not the 35W one, carries the real CTE-mismatch structural risk — a reminder that raw power level is a poor predictor of which design needs a structural fix.",
       metrics: [
         { value: "90°C", label: "0.3W junction (+65°C rise)" },
         { value: "80.2°C", label: "35W junction (+55.2°C rise)" },
+        { value: "865 MPa", label: "0.3W peak solder stress" },
         { value: "15.5 µm", label: "0.3W warpage" },
-        { value: "865 MPa", label: "35W peak solder stress" },
       ],
       tools: ["SolidWorks", "ANSYS Icepak", "ANSYS Mechanical"],
       challenge: {
-        problem: "Does CTE-mismatch-driven solder fatigue risk scale with power level — meaning a 35W part should be far worse off than a 0.3W part — or is it governed by something else entirely?",
+        problem: "Does CTE-mismatch-driven solder fatigue risk scale with power level — meaning the 35W part should be far worse off than the 0.3W part — or is it governed by something else entirely?",
         approach: "Built both package stacks in SolidWorks (a 69-body low-power part, a 295-body CPU-class part with a copper IHS and indium TIM), then ran each through the same coupled thermal simulation (ANSYS Icepak, matched to each part's realistic cooling method) into a structural analysis (ANSYS Mechanical).",
-        result: "The 35W part, despite 117x the power, saw a *smaller* temperature rise than the 0.3W part thanks to its copper IHS and forced convection. Warpage was captured for the 0.3W part (15.5 µm) and peak solder stress for the 35W part (865 MPa) — both driven by the same underlying CTE mismatch between solder and substrate, regardless of power level.",
+        result: "The 35W part, despite 117x the power, saw a *smaller* temperature rise than the 0.3W part thanks to its copper IHS and forced convection — and no significant structural risk at all. It was the 0.3W part that showed 865 MPa of peak solder stress and 15.5 µm of warpage, proving that CTE-mismatch fatigue risk is governed by package geometry and stress distribution, not by absolute power or peak temperature.",
       },
       process: [
         {
@@ -97,11 +97,11 @@ const PROJECTS = [
         },
         {
           title: "0.3W — Run the natural-convection simulation",
-          description: "Applied 0.3W to the die and h ≈ 5–10 W/m²·K across all exposed surfaces in ANSYS Icepak, finding a 90°C junction temperature and a thermal gradient down to 27°C at the PCB edge. The structural pass then found 15.5 µm of warpage, driven by the 4 ppm/°C CTE mismatch between solder and substrate.",
+          description: "Applied 0.3W to the die and h ≈ 5–10 W/m²·K across all exposed surfaces in ANSYS Icepak, finding a 90°C junction temperature and a thermal gradient down to 27°C at the PCB edge. The structural pass then found 865 MPa of peak solder stress and 15.5 µm of warpage, driven by the 4 ppm/°C CTE mismatch between solder and substrate.",
         },
         {
           title: "0.3W — Identify the fix",
-          description: "Traced the thermal bottleneck to the mold compound (≈60% of total thermal resistance) and proposed underfill epoxy, a low-CTE substrate (<2 ppm/°C mismatch), and a high-k mold compound (>2 W/m·K, an estimated 8–12°C junction temperature reduction).",
+          description: "Traced the thermal bottleneck to the mold compound (≈60% of total thermal resistance) and proposed underfill epoxy, a low-CTE substrate (<2 ppm/°C mismatch, pulling solder stress below an 800 MPa fatigue threshold), and a high-k mold compound (>2 W/m·K, an estimated 8–12°C junction temperature reduction).",
         },
         {
           title: "35W — Model the high-performance package stack",
@@ -113,8 +113,8 @@ const PROJECTS = [
           description: "Applied 35W with forced-convection boundary conditions (h = 1,500–5,000 W/m²·K at the IHS, 100–300 W/m²·K at the PCB), finding a 78.5°C die hotspot and 62°C IHS center. A transient run tracked cold start to steady state — 45°C by t=10s, 95% of steady state by t=90s, stabilizing at 80.2°C by t=159s.",
         },
         {
-          title: "35W — Solve the structural response & identify the fix",
-          description: "Found 865 MPa of peak solder stress at the corner balls and <5 µm of IHS flatness deviation. Flagged TIM1 pump-out under power cycling as the primary long-term risk, and proposed an indium/liquid-metal TIM1, a frame seal around TIM1, and substrate CTE engineering toward 19–20 ppm/°C to pull solder stress below an 800 MPa fatigue threshold.",
+          title: "35W — Solve the structural response",
+          description: "Found <5 µm of IHS flatness deviation and ~120 MPa of peak die stress — well within safe margins, with no comparable solder fatigue risk to the 0.3W package. The copper IHS's stiffness and the denser solder grid's larger load-sharing area meant no corrective structural fix was needed for this design.",
         },
       ],
     },
@@ -171,12 +171,10 @@ const EXPERIENCE = [
         {
           title: "Design the part",
           description: "Designed structural composite beams in Siemens NX, and a glass-fiber fuselage pod with a load-path-optimized ply schedule.",
-          images: [{ caption: "Beam design & layup" }],
         },
         {
           title: "Build via vacuum infusion",
           description: "Fabricated beams across a 350–800g weight range and a full fuselage pod, targeting maximum failure load per gram.",
-          images: [{ caption: "Fuselage pod fabrication" }],
         },
         { title: "Root-cause the defects", description: "Diagnosed recurring I-beam wall defects down to helix tubing placement, then redesigned it and added a leak-check checkpoint." },
         {
@@ -1225,7 +1223,7 @@ export default function App() {
       }
     );
 
-    camera.position.set(6, 8, 22);
+    camera.position.set(10, 11, 29);
     controls.target.set(-5, 0, 4);
     controls.update();
 
@@ -2471,6 +2469,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {[
+                    ["Solder ball von Mises stress (max)", "865 MPa", "Located at outermost corner balls"],
                     ["Package warpage", "15.5 µm", "Concave. Die side warmer, substrate cooler"],
                     ["CTE of solder (SAC305)", "21 ppm/°C", "Relative expansion driver"],
                     ["CTE of substrate (BT resin)", "17 ppm/°C", "CTE mismatch = 4 ppm/°C"],
@@ -2490,8 +2489,8 @@ export default function App() {
             <ul style={{ margin: "0 0 32px", padding: "0 0 0 18px", fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
               <li>The 65°C junction-to-ambient rise is within acceptable limits for standard CMOS devices rated to 125°C, yielding a 35°C thermal margin.</li>
               <li>The primary thermal bottleneck is the mold compound (k ≈ 0.7 W/m·K), accounting for ≈60% of total package thermal resistance.</li>
-              <li>CTE mismatch between solder (21 ppm/°C) and substrate (17 ppm/°C) drives solder fatigue at the outermost corner balls.</li>
-              <li><strong style={{ color: PAPER.textPrimary }}>Proposed fixes:</strong> (1) underfill epoxy to redistribute stress across the full ball array; (2) low-CTE substrate (ceramic or low-CTE organic) to cut the CTE delta below 2 ppm/°C; (3) high-k mold compound (&gt;2 W/m·K) to reduce junction temperature by an estimated 8–12°C.</li>
+              <li>CTE mismatch between solder (21 ppm/°C) and substrate (17 ppm/°C) drives 865 MPa of peak solder stress and 15.5 µm of warpage at the outermost corner balls — the package's main reliability risk despite its low power level.</li>
+              <li><strong style={{ color: PAPER.textPrimary }}>Proposed fixes:</strong> (1) underfill epoxy to redistribute stress across the full ball array; (2) low-CTE substrate (ceramic or low-CTE organic) to cut the CTE delta below 2 ppm/°C, pulling solder stress below an 800 MPa fatigue threshold; (3) high-k mold compound (&gt;2 W/m·K) to reduce junction temperature by an estimated 8–12°C.</li>
             </ul>
 
             {/* ============ PROJECT 2 ============ */}
@@ -2601,11 +2600,10 @@ export default function App() {
                 </thead>
                 <tbody>
                   {[
-                    ["Solder ball von Mises stress (max)", "865 MPa", "Corner balls had highest CTE mismatch location"],
                     ["Die stress (max)", "~120 MPa", "Tensile stress at die corners under cooling"],
                     ["IHS flatness deviation", "<5 µm", "Copper IHS high stiffness limits warpage"],
                     ["CTE — copper IHS", "17 ppm/°C", "Close match to substrate, reduces warpage"],
-                    ["Primary failure risk", "TIM1 pump-out / solder fatigue", "At 35W cycling, TIM1 degradation accelerates"],
+                    ["Structural risk", "None identified", "No significant fatigue or warpage concern at this power level"],
                   ].map((row) => (
                     <tr key={row[0]} style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
                       {row.map((cell, i) => (
@@ -2617,13 +2615,12 @@ export default function App() {
               </table>
             </div>
 
-            <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Design Observations & Corrective Actions</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", color: PAPER.textPrimary }}>Design Observations</h3>
             <ul style={{ margin: "0 0 32px", padding: "0 0 0 18px", fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
               <li>The 55.2°C junction to ambient rise is within safe range for modern CPUs (T_junction max typically 100–105°C), a ≈20–25°C margin.</li>
-              <li>The copper IHS is the most critical thermal management component, spreading concentrated die heat flux to an area forced convection can act on.</li>
-              <li>TIM1 resistance contributes ≈6°C of the die to IHS drop, indium-based TIMs (k ≈ 80 W/m·K) significantly outperform standard polymer TIMs (k ≈ 5–8 W/m·K).</li>
-              <li>Under power cycling, TIM1 pump-out is the primary long-term reliability risk as repeated expansion differentials progressively displace it from the interface.</li>
-              <li><strong style={{ color: PAPER.textPrimary }}>Proposed fixes:</strong> (1) indium or liquid-metal TIM1 to cut die-to-IHS delta-T from 6°C to &lt;2°C; (2) a frame seal around TIM1 to prevent pump-out; (3) substrate CTE engineering toward 19–20 ppm/°C to pull solder stress below an 800 MPa fatigue threshold.</li>
+              <li>The copper IHS is the most critical thermal management component, spreading concentrated die heat flux to an area forced convection can act on — and its stiffness keeps structural deformation well within safe limits (&lt;5 µm IHS flatness deviation, ~120 MPa peak die stress).</li>
+              <li>TIM1 resistance contributes ≈6°C of the die to IHS drop; indium-based TIMs (k ≈ 80 W/m·K) significantly outperform standard polymer TIMs (k ≈ 5–8 W/m·K).</li>
+              <li>No corrective structural fixes were needed for this design — the combination of forced convection, a copper IHS, and a high-k TIM kept both thermal and structural margins comfortable at 35W.</li>
             </ul>
 
             {/* ============ COMPARATIVE SUMMARY ============ */}
@@ -2645,11 +2642,11 @@ export default function App() {
                     ["Die junction temp (steady state)", "90°C", "80.2°C"],
                     ["Junction-to-ambient rise", "+65°C", "+55.2°C"],
                     ["Transient stabilization time", "N/A (steady state only)", "159s"],
-                    ["Max solder ball stress", " - ", "865 MPa"],
-                    ["Package warpage", "15.5 µm", " - "],
+                    ["Max solder ball stress", "865 MPa", "None identified"],
+                    ["Package warpage", "15.5 µm", "None identified"],
                     ["Primary thermal bottleneck", "Mold compound (k ≈ 0.7 W/m·K)", "TIM1 resistance + IHS spreading"],
-                    ["Primary failure mode", "Solder fatigue (CTE mismatch)", "TIM1 pump-out + solder fatigue"],
-                    ["Key design fix", "Underfill + high-k mold compound", "Indium TIM1 + frame seal"],
+                    ["Primary failure mode", "Solder fatigue (CTE mismatch)", "None — structurally sound"],
+                    ["Key design fix", "Underfill + high-k mold compound + low-CTE substrate", "None needed"],
                   ].map((row) => (
                     <tr key={row[0]} style={{ borderBottom: `1px solid ${PAPER.panelBorder}` }}>
                       {row.map((cell, i) => (
@@ -2673,10 +2670,11 @@ export default function App() {
               <div style={{ fontSize: 14, lineHeight: 1.7, color: PAPER.textMuted }}>
                 Despite a 117x increase in power dissipation (0.3W to 35W), the CPU package achieves a <em>lower</em> junction-temperature rise
                 (+55.2°C vs. +65°C above ambient), demonstrating that forced convection with a copper IHS and high-k TIM fundamentally changes
-                the thermal management equation at high power levels. The structural analysis captured a different metric for each case —
-                15.5 µm of warpage for the 0.3W package, 865 MPa of peak solder stress for the 35W package — but both trace back to the same
-                underlying CTE mismatch between solder (21 ppm/°C) and substrate (17 ppm/°C), confirming that this fatigue risk exists across
-                the full power range rather than being specific to one design point.
+                the thermal management equation at high power levels. Counterintuitively, it's the <em>lower-power</em> 0.3W package that
+                carries the real structural risk — 865 MPa of peak solder stress and 15.5 µm of warpage, both driven by the CTE mismatch
+                between solder (21 ppm/°C) and substrate (17 ppm/°C). The 35W package's copper IHS and denser solder grid distribute that same
+                mismatch across enough area that no comparable stress or warpage risk was identified — proof that raw power level is a poor
+                predictor of which design actually needs a structural fix.
               </div>
             </div>
           </div>
