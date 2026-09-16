@@ -1196,8 +1196,9 @@ export default function App() {
           const model = gltf.scene;
           // The SolidWorks export keeps Z as the vertical axis (see the axis triad in the
           // CAD screenshot), but Three.js/OrbitControls expect Y-up. Rotate the whole model
-          // to match — this is the only orientation fix needed; materials are left as-is.
+          // to match, then spin it 90° horizontally to correct the facing direction.
           model.rotation.x = -Math.PI / 2;
+          model.rotation.y = Math.PI / 2;
           let meshCount = 0;
           model.traverse((child) => {
             if (!child.isMesh || !child.material) return;
