@@ -1196,9 +1196,8 @@ export default function App() {
           const model = gltf.scene;
           // The SolidWorks export keeps Z as the vertical axis (see the axis triad in the
           // CAD screenshot), but Three.js/OrbitControls expect Y-up. Rotate the whole model
-          // to match, then spin it 90° horizontally to correct the facing direction.
+          // to match.
           model.rotation.x = -Math.PI / 2;
-          model.rotation.y = Math.PI / 2;
           let meshCount = 0;
           model.traverse((child) => {
             if (!child.isMesh || !child.material) return;
@@ -1457,8 +1456,23 @@ export default function App() {
           <button className="nav-btn" onClick={() => openSection("literature")}>
             <BookOpen size={18} /> Literature Survey
           </button>
-          <button className="nav-btn" onClick={() => openSection("working")}>
+          <button className="nav-btn" onClick={() => openSection("working")} style={{ position: "relative", background: COLORS.accentSoft }}>
             <Lightbulb size={18} /> I Have an Idea
+            <span
+              style={{
+                marginLeft: "auto",
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: "#04101f",
+                background: COLORS.accent,
+                padding: "3px 7px",
+                borderRadius: 999,
+              }}
+            >
+              New
+            </span>
           </button>
           <button className="nav-btn" onClick={() => openSection("about")}>
             <User size={18} /> About Me
@@ -1677,7 +1691,8 @@ export default function App() {
       {isWorking && (
         <div className="dialog-window" style={{ zIndex: 6 }}>
           <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 28px 80px" }}>
-            <h1 style={{ margin: "0 0 16px", fontSize: 28, fontWeight: 700 }}>I Have an Idea</h1>
+            <h1 style={{ margin: "0 0 8px", fontSize: 28, fontWeight: 700 }}>I Have an Idea</h1>
+            <div style={{ fontSize: 18, fontStyle: "italic", fontWeight: 700, color: PAPER.accent, marginBottom: 20 }}>*Updating frequently*</div>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24, position: "relative" }}>
               <button className="deep-dive-bubble" onClick={openDeepDive}>
