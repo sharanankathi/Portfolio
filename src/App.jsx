@@ -419,6 +419,15 @@ export default function App() {
   const [dcLoadError, setDcLoadError] = useState(null);
   const [discussOpen, setDiscussOpen] = useState(false);
 
+  // Visit sharanankathi.space/?noanalytics=1 once on any device (your laptop, phone, etc.)
+  // to permanently exclude that browser from analytics — it sets a localStorage flag that
+  // the Analytics beforeSend hook below checks on every future visit from that browser.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("noanalytics") === "1") {
+      localStorage.setItem("sa_exclude_analytics", "true");
+    }
+  }, []);
+
   const stateRef = useRef({ view: "home", selectedId: null });
   const [view, setView] = useState("home");
   const [selectedId, setSelectedId] = useState(null);
@@ -1168,7 +1177,7 @@ export default function App() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.7;
+    controls.autoRotateSpeed = -0.7;
     controls.minDistance = 8;
     controls.maxDistance = 45;
     controls.addEventListener("start", () => (controls.autoRotate = false));
@@ -1458,21 +1467,7 @@ export default function App() {
           </button>
           <button className="nav-btn" onClick={() => openSection("working")} style={{ position: "relative", background: COLORS.accentSoft }}>
             <Lightbulb size={18} /> I Have an Idea
-            <span
-              style={{
-                marginLeft: "auto",
-                fontSize: 9,
-                fontWeight: 700,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                color: "#04101f",
-                background: COLORS.accent,
-                padding: "3px 7px",
-                borderRadius: 999,
-              }}
-            >
-              New
-            </span>
+            <span style={{ marginLeft: "auto", fontSize: 16, color: COLORS.accent }}>★</span>
           </button>
           <button className="nav-btn" onClick={() => openSection("about")}>
             <User size={18} /> About Me
@@ -2863,7 +2858,7 @@ export default function App() {
           </div>
         </div>
       )}
-      <Analytics />
+      <Analytics beforeSend={(event) => (localStorage.getItem("sa_exclude_analytics") === "true" ? null : event)} />
     </div>
   );
 }
